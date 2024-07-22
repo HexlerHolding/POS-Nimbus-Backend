@@ -1,8 +1,5 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-const Shop = require("./Shop");
-const Branch = require("./Branch");
-const Category = require("./Category");
 
 const ProductSchema = new Schema({
   product_name: {
@@ -18,12 +15,13 @@ const ProductSchema = new Schema({
     required: true,
   },
   variation: {
-    type: Array,
+    type: [String],
     default: [],
   },
   category: {
     type: Schema.Types.ObjectId,
-    ref: "Category",
+    required: true,
+    unique: true,
   },
   product_price: {
     type: Number,
@@ -33,12 +31,13 @@ const ProductSchema = new Schema({
     type: Boolean,
     default: true,
   },
-  shop: {
+  shop_id: {
     type: Schema.Types.ObjectId,
-    ref: "Shop",
+    required: true,
+    unique: true,
   },
   branch_ids: {
-    type: Array,
+    type: [Schema.Types.ObjectId],
     default: [],
   },
 });

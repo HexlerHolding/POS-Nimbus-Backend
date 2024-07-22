@@ -1,9 +1,8 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-const Shop = require("./Shop");
 
 const CategorySchema = new Schema({
-  categoryName: {
+  category_name: {
     type: String,
     required: true,
     unique: true,
@@ -20,9 +19,10 @@ const CategorySchema = new Schema({
     type: String,
     required: true,
   },
-  shop: {
+  shop_id: {
     type: Schema.Types.ObjectId,
-    ref: "Shop",
+    unique: true,
+    required: true,
   },
 });
 

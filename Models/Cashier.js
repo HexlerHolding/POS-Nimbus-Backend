@@ -1,15 +1,9 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
-const Branch = require("./Branch");
 const Schema = mongoose.Schema;
 
 const CashierSchema = new Schema({
   username: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  email: {
     type: String,
     required: true,
     unique: true,
@@ -19,7 +13,8 @@ const CashierSchema = new Schema({
     required: true,
   },
   branch_id: {
-    type: String,
+    type: Schema.Types.ObjectId,
+    unique: true,
     required: true,
   },
 });

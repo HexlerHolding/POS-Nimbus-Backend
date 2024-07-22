@@ -1,12 +1,11 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-const Shop = require("./Shop");
-const Branch = require("./Branch");
 
 const IngredientSchema = new Schema({
   ingredient_name: {
     type: String,
     required: true,
+    unique: true,
   },
   ingredient_description: {
     type: String,
@@ -16,9 +15,18 @@ const IngredientSchema = new Schema({
     type: Boolean,
     default: true,
   },
-  shop: {
+  shop_id: {
     type: Schema.Types.ObjectId,
-    ref: "Shop",
+    unique: true,
+    required: true,
+  },
+  category: {
+    type: Schema.Types.ObjectId,
+    required: true,
+  },
+  price: {
+    type: Number,
+    required: true,
   },
 });
 

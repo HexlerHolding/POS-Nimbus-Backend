@@ -3,7 +3,7 @@ const bcrypt = require("bcryptjs");
 const Schema = mongoose.Schema;
 
 const ShopSchema = new Schema({
-  shopName: {
+  shop_name: {
     type: String,
     required: true,
     unique: true,
@@ -18,18 +18,22 @@ const ShopSchema = new Schema({
     required: true,
   },
   branch_ids: {
-    type: Array,
+    type: [Schema.Types.ObjectId],
     default: [],
   },
   product_ids: {
     type: Array,
     default: [],
   },
-  websiteLink: {
+  website_link: {
     type: String,
     required: true,
   },
   logo: {
+    type: String,
+    required: true,
+  },
+  token: {
     type: String,
     required: true,
   },
@@ -50,7 +54,7 @@ const ShopSchema = new Schema({
     required: true,
   },
   social_media_links: {
-    type: Array,
+    type: [String],
     default: [],
   },
 });
@@ -68,3 +72,4 @@ ShopSchema.methods.comparePassword = async function (password) {
 };
 
 const Shop = mongoose.model("Shop", ShopSchema);
+mongoose.exports = Shop;
