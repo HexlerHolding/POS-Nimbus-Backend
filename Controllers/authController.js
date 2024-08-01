@@ -92,7 +92,7 @@ const authController = {
       if (!isMatch) {
         return res.status(400).json({ message: "Invalid credentials" });
       }
-      const role = "admin";
+      const role = "owner";
       const token = jwt.sign(
         { id: shop._id, role: role, shopId: shop._id, shopName: shopName },
         process.env.JWT_SECRET

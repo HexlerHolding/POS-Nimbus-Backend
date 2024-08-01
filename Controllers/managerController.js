@@ -167,6 +167,9 @@ const managerController = {
         shop_id: shopId,
         name: category,
       });
+      if (!cat) {
+        return res.status(404).json({ message: "Category not found" });
+      }
 
       const product = new Product({
         shop_id: shopId,
@@ -193,7 +196,6 @@ const managerController = {
 
       const products = await Product.find({
         shop_id: shopId,
-        branch_ids: branchId,
         status: true,
       });
 

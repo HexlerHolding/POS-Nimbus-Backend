@@ -8,7 +8,7 @@ const OrderSchema = new Schema({
         type: Schema.Types.ObjectId,
         required: true,
       },
-      prduct_name: {
+      product_name: {
         type: String,
         required: true,
       },
@@ -33,11 +33,12 @@ const OrderSchema = new Schema({
   payment_method: {
     type: String,
     required: true,
+    enum: ["cash", "card", "online"],
   },
   order_type: {
     type: String,
     required: true,
-    enum: ["online", "branch"],
+    enum: ["delivery", "takeaway", "dine-in"],
   },
   status: {
     type: String,
