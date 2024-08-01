@@ -6,7 +6,6 @@ const CashierSchema = new Schema({
   username: {
     type: String,
     required: true,
-    unique: true,
   },
   password: {
     type: String,
@@ -14,8 +13,25 @@ const CashierSchema = new Schema({
   },
   branch_id: {
     type: Schema.Types.ObjectId,
-    unique: true,
     required: true,
+  },
+  shop_id: {
+    type: Schema.Types.ObjectId,
+    required: true,
+  },
+  joining_date: {
+    type: Date,
+    default: new Date(),
+  },
+  salary: {
+    type: Number,
+  },
+  salary_due_date: {
+    type: Date,
+  },
+  status: {
+    type: String,
+    default: "Active",
   },
 });
 
@@ -31,6 +47,7 @@ CashierSchema.methods.comparePassword = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
 
-const Cashier = mongoose.model("Cashier", CashierSchema);
+CashierSchema.index({ shop_id: 1, branch_id: 1, username: 1 }, { unique: true });
 
+const Cashier = mongoose.model("Cashier", CashierSchema);
 module.exports = Cashier;

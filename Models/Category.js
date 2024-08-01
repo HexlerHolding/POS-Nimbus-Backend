@@ -7,25 +7,18 @@ const CategorySchema = new Schema({
     required: true,
     unique: true,
   },
-  category_image: {
-    type: String,
-    required: true,
-  },
   status: {
     type: Boolean,
     default: true,
   },
-  token: {
-    type: String,
-    required: true,
-  },
   shop_id: {
     type: Schema.Types.ObjectId,
-    unique: true,
     required: true,
+    index: true,
   },
 });
 
-const Category = mongoose.model("Category", CategorySchema);
+CategorySchema.index({ shop_id: 1, category_name: 1 }, { unique: true });
 
+const Category = mongoose.model("Category", CategorySchema);
 module.exports = Category;

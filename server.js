@@ -7,10 +7,10 @@ const cors = require("cors");
 const fs = require("fs");
 const app = express();
 
-dotenv.config();
-
 app.use(cookieParser());
 app.use(express.json());
+
+dotenv.config();
 
 // Connect to MongoDB
 // mongoose
@@ -19,11 +19,7 @@ app.use(express.json());
 //   .catch((err) => console.log(err));
 
 mongoose
-  // .connect("mongodb://127.0.0.1:27017/warehouse", {
-  .connect("mongodb://127.0.0.1:27017/development", {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
+  .connect("mongodb://127.0.0.1:27017/restaurant")
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.log("Error: ", err));
 
@@ -43,7 +39,15 @@ app.get("/", (req, res) => {
 });
 
 // Routes
+const authRoutes = require("./Routes/authRoutes");
+const adminRoutes = require("./Routes/adminRoutes");
+const managerRoutes = require("./Routes/managerRoutes");
+const cashierRoutes = require("./Routes/cashierRoutes");
 
+app.use("/auth", authRoutes);
+app.use("/admin", adminRoutes);
+app.use("/manager", managerRoutes);
+app.use("/cashier", cashierRoutes);
 
 // // SSL options
 // const options = {

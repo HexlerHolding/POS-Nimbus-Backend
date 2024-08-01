@@ -27,35 +27,37 @@ const ShopSchema = new Schema({
   },
   website_link: {
     type: String,
-    required: true,
   },
   logo: {
     type: String,
-    required: true,
   },
   token: {
     type: String,
-    required: true,
-  },
-  address: {
-    type: String,
-    required: true,
   },
   NTN: {
     type: String,
-    required: true,
   },
   tax_integration: {
     type: Boolean,
     default: false,
   },
-  total_tables: {
-    type: Number,
-    required: true,
-  },
   social_media_links: {
     type: [String],
     default: [],
+  },
+  currency: {
+    type: String,
+    default: "PKR",
+  },
+  timezone: {
+    type: String,
+  },
+  subscription_plan: {
+    type: String,
+  },
+  bill_status: {
+    type: Boolean,
+    default: true,
   },
 });
 
@@ -72,4 +74,4 @@ ShopSchema.methods.comparePassword = async function (password) {
 };
 
 const Shop = mongoose.model("Shop", ShopSchema);
-mongoose.exports = Shop;
+module.exports = Shop;

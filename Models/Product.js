@@ -2,17 +2,15 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const ProductSchema = new Schema({
-  product_name: {
+  name: {
     type: String,
     required: true,
   },
-  product_image: {
+  image: {
     type: String,
-    required: true,
   },
-  product_description: {
+  description: {
     type: String,
-    required: true,
   },
   variation: {
     type: [String],
@@ -21,23 +19,23 @@ const ProductSchema = new Schema({
   category: {
     type: Schema.Types.ObjectId,
     required: true,
-    unique: true,
   },
-  product_price: {
+  price: {
     type: Number,
     required: true,
   },
-  product_status: {
+  status: {
     type: Boolean,
     default: true,
   },
   shop_id: {
     type: Schema.Types.ObjectId,
     required: true,
-    unique: true,
-  },
-  branch_ids: {
-    type: [Schema.Types.ObjectId],
-    default: [],
+    index: true,
   },
 });
+
+ProductSchema.index({ shop_id: 1, name: 1 }, { unique: true });
+
+const Product = mongoose.model("Product", ProductSchema);
+module.exports = Product;

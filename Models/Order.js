@@ -8,6 +8,10 @@ const OrderSchema = new Schema({
         type: Schema.Types.ObjectId,
         required: true,
       },
+      prduct_name: {
+        type: String,
+        required: true,
+      },
       quantity: {
         type: Number,
         required: true,
@@ -35,7 +39,7 @@ const OrderSchema = new Schema({
     required: true,
     enum: ["online", "branch"],
   },
-  order_status: {
+  status: {
     type: String,
     default: "pending",
   },
@@ -62,6 +66,17 @@ const OrderSchema = new Schema({
   refund_items: {
     type: Boolean,
     default: false,
+  },
+  completion_time: {
+    type: Date,
+  },
+  shop_id: {
+    type: Schema.Types.ObjectId,
+    required: true,
+  },
+  branch_id: {
+    type: Schema.Types.ObjectId,
+    required: true,
   },
 });
 

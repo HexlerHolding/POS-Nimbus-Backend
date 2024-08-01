@@ -29,4 +29,4 @@ const OwnerSchema = new Schema({
 });
 
 const Owner = mongoose.model("Owner", OwnerSchema);
-module.exports = Owner;
+module.exports = Owner; 
