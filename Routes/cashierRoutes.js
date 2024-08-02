@@ -6,6 +6,7 @@ const cashierController = require("../Controllers/cashierController");
 router.get("/products", mw.verifyToken, cashierController.getProducts);
 router.get("/orders", mw.verifyToken, cashierController.getOrders);
 router.get("/orders/active", mw.verifyToken, cashierController.getActiveOrders);
+router.get("/orders/active", mw.verifyToken, cashierController.getActiveOrders);
 
 router.post("/order/add", mw.verifyToken, cashierController.addOrder);
 
