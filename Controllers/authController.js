@@ -80,6 +80,7 @@ const authController = {
 
   adminLogin: async (req, res) => {
     try {
+      console.log(req.body);
       const { shopName, password } = req.body;
       if (!shopName || !password) {
         return res.status(400).json({ message: "Please fill in all fields" });
@@ -92,7 +93,7 @@ const authController = {
       if (!isMatch) {
         return res.status(400).json({ message: "Invalid credentials" });
       }
-      const role = "owner";
+      const role = "admin";
       const token = jwt.sign(
         { id: shop._id, role: role, shopId: shop._id, shopName: shopName },
         process.env.JWT_SECRET
@@ -163,7 +164,7 @@ const authController = {
         .cookie("token", token, {
           httpOnly: true,
           sameSite: "none",
-          secure: true,
+          secure: false,
         })
         .json({ role: role, shopName, branchName });
     } catch (error) {
