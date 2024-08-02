@@ -122,7 +122,15 @@ const adminController = {
         return res.status(400).send({ message: "Please provide shop name" });
       }
 
-      const { branchName, address, city, contact } = req.body;
+      const {
+        branchName,
+        address,
+        city,
+        contact,
+        total_tables,
+        opening_time,
+        closing_time,
+      } = req.body;
 
       if (!branchName || !address || !city || !contact) {
         return res.status(400).send({ message: "Please fill in all fields" });
@@ -140,6 +148,9 @@ const adminController = {
         address,
         city,
         contact,
+        total_tables,
+        opening_time,
+        closing_time,
       });
 
       await branch.save();

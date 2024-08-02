@@ -6,6 +6,7 @@ const Category = require("../Models/Category");
 const mongoose = require("mongoose");
 const { v4: uuidv4 } = require("uuid");
 const multer = require("multer");
+const admin = require("firebase-admin");
 const { getProducts } = require("./cashierController");
 
 const storage = multer.memoryStorage();
@@ -157,11 +158,18 @@ const managerController = {
           return res.status(400).json({ message: "Please provide shop name" });
         }
 
+        console.log("body", req.body);
+        console.log("file", req.file);
+
         const { name, description, price, category } = req.body;
         const image = req.file;
 
         if (!name || !description || !price || !category) {
           return res.status(400).json({ message: "Please fill in all fields" });
+        }
+
+        if (!image) {
+          return res.status(400).json({ message: "Please upload an image" });
         }
 
         const bucket = admin.storage().bucket();
@@ -185,7 +193,7 @@ const managerController = {
 
         const cat = await Category.findOne({
           shop_id: shopId,
-          name: category,
+          category_name: category,
         });
         if (!cat) {
           return res.status(404).json({ message: "Category not found" });
@@ -211,14 +219,17 @@ const managerController = {
 
   getProducts: async (req, res) => {
     try {
-      const { shopId, branchId } = req;
-      if (!shopId || !branchId) {
+      const { shopId } = req;
+      if (!shopId) {
         return res.status(400).send({ message: "Please provide ids" });
       }
 
       const products = await Product.find({
         shop_id: shopId,
         status: true,
+      }).populate({
+        path: "category",
+        select: "category_name",
       });
 
       res.status(200).json({ products });

@@ -44,6 +44,7 @@ const BranchSchema = new Schema({
   },
   day_number: {
     type: Number,
+    default: 0,
   },
   opening_time: {
     type: String,
@@ -53,6 +54,7 @@ const BranchSchema = new Schema({
   },
   shift_status: {
     type: Boolean,
+    default: false,
   },
   sales: [SalesSchema],
   cash_on_hand: {
@@ -61,6 +63,7 @@ const BranchSchema = new Schema({
   },
   wait_time: {
     type: Number,
+    default: 3,
   },
 });
 
