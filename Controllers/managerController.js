@@ -4,7 +4,12 @@ const Cashier = require("../Models/Cashier");
 const Product = require("../Models/Product");
 const Category = require("../Models/Category");
 const mongoose = require("mongoose");
+const { v4: uuidv4 } = require("uuid");
+const multer = require("multer");
 const { getProducts } = require("./cashierController");
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 const managerController = {
   getBranch: async (req, res) => {
@@ -143,46 +148,66 @@ const managerController = {
     }
   },
 
-  addProduct: async (req, res) => {
-    try {
-      const shopId = req.shopId;
-      if (!shopId) {
-        return res.status(400).json({ message: "Please provide shop name" });
+  addProduct: [
+    upload.single("image"),
+    async (req, res) => {
+      try {
+        const shopId = req.shopId;
+        if (!shopId) {
+          return res.status(400).json({ message: "Please provide shop name" });
+        }
+
+        const { name, description, price, category } = req.body;
+        const image = req.file;
+
+        if (!name || !description || !price || !category) {
+          return res.status(400).json({ message: "Please fill in all fields" });
+        }
+
+        const bucket = admin.storage().bucket();
+        const uuid = uuidv4();
+        const file = bucket.file(`products/${uuid}`);
+
+        await file.save(image.buffer, {
+          metadata: {
+            contentType: image.mimetype,
+            firebaseStorageDownloadTokens: uuid,
+          },
+        });
+
+        const prodExists = await Product.findOne({
+          shop_id: shopId,
+          name,
+        });
+        if (prodExists) {
+          return res.status(400).json({ message: "Product already exists" });
+        }
+
+        const cat = await Category.findOne({
+          shop_id: shopId,
+          name: category,
+        });
+        if (!cat) {
+          return res.status(404).json({ message: "Category not found" });
+        }
+
+        const product = new Product({
+          shop_id: shopId,
+          name,
+          description,
+          image: `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/products%2F${uuid}?alt=media&token=${uuid}`,
+          price,
+          category: cat._id,
+        });
+        await product.save();
+
+        res.status(201).json({ message: "Product created successfully" });
+      } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: error.message });
       }
-
-      const { name, description, price, category } = req.body;
-      if (!name || !description || !price || !category) {
-        return res.status(400).json({ message: "Please fill in all fields" });
-      }
-
-      const prodExists = await Product.findOne({
-        shop_id: shopId,
-        name,
-      });
-      if (prodExists) {
-        return res.status(400).json({ message: "Product already exists" });
-      }
-
-      const cat = await Category.findOne({
-        shop_id: shopId,
-        name: category,
-      });
-
-      const product = new Product({
-        shop_id: shopId,
-        name,
-        description,
-        price,
-        category: cat._id,
-      });
-      await product.save();
-
-      res.status(201).json({ message: "Product created successfully" });
-    } catch (error) {
-      console.log(error);
-      res.status(500).json({ message: error.message });
-    }
-  },
+    },
+  ],
 
   getProducts: async (req, res) => {
     try {
@@ -193,7 +218,6 @@ const managerController = {
 
       const products = await Product.find({
         shop_id: shopId,
-        branch_ids: branchId,
         status: true,
       });
 

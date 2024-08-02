@@ -72,14 +72,9 @@ const cashierController = {
       } = req.body;
 
       if (
-        !products ||
-        !total ||
-        !customer_name ||
-        !payment_method ||
-        !order_type ||
-        !tax ||
-        !discount ||
-        !address
+        !products || !total || !customer_name ||
+        !payment_method || !order_type || tax=="null" ||
+        discount=="null" || !address
       ) {
         return res
           .status(400)
@@ -88,12 +83,14 @@ const cashierController = {
 
       const cart = products.map((product) => {
         return {
-          product_id: product.product_id,
-          product_name: product.product_name,
+          product_id: product._id,
+          product_name: product.name,
           quantity: product.quantity,
           price: product.price,
         };
       });
+
+      console.log(cart);
 
       const order = new Order({
         cart,

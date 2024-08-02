@@ -6,11 +6,25 @@ const https = require("https");
 const cors = require("cors");
 const fs = require("fs");
 const app = express();
+const admin = require("firebase-admin");
+const serviceAccount = require("./serviceaccount.json");
 
 app.use(cookieParser());
 app.use(express.json());
 
 dotenv.config();
+
+app.use(express.urlencoded({ extended: true }));
+
+try {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    storageBucket: "gs://nimbus-system.appspot.com",
+  });
+  console.log("Firebase Admin Initialized");
+} catch (err) {
+  console.log("Firebase Admin Already Initialized");
+}
 
 // Connect to MongoDB
 // mongoose
