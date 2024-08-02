@@ -27,15 +27,15 @@ try {
 }
 
 // Connect to MongoDB
-// mongoose
-//   .connect("mongodb+srv://hexlertech:vQEmfMxnymZ510vo@cluster0.gyfkxge.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
-//   .then(() => console.log("MongoDB connected"))
-//   .catch((err) => console.log(err));
-
 mongoose
-  .connect("mongodb://127.0.0.1:27017/restaurant")
+  .connect("mongodb+srv://hexlertech:ht_70707070@nimbuscluster.ud3bqgb.mongodb.net/?retryWrites=true&w=majority&appName=NimbusCluster")
   .then(() => console.log("MongoDB connected"))
-  .catch((err) => console.log("Error: ", err));
+  .catch((err) => console.log(err));
+
+// mongoose
+//   .connect("mongodb://127.0.0.1:27017/restaurant")
+//   .then(() => console.log("MongoDB connected"))
+//   .catch((err) => console.log("Error: ", err));
 
 app.use(express.json({ limit: "50mb" }));
 app.use(
