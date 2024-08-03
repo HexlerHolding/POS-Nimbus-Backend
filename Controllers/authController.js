@@ -62,7 +62,7 @@ const authController = {
 
   addShop: async (req, res) => {
     try {
-      console.log(req.body);
+   
       const { shopName, email, password } = req.body;
       if (!shopName || !email || !password) {
         return res.status(400).json({ message: "Please fill in all fields" });
@@ -80,7 +80,7 @@ const authController = {
 
   adminLogin: async (req, res) => {
     try {
-      console.log(req.body);
+  
       const { shopName, password } = req.body;
       if (!shopName || !password) {
         return res.status(400).json({ message: "Please fill in all fields" });
@@ -164,9 +164,11 @@ const authController = {
         .cookie("token", token, {
           httpOnly: true,
           sameSite: "none",
-          secure: false,
+          secure: true,
         })
         .json({ role: role, shopName, branchName });
+
+        console.log("Manager login successful");
     } catch (error) {
       console.log(error);
       res.status(500).json({ message: error.message });
@@ -230,6 +232,38 @@ const authController = {
     } catch (error) {
       console.log(error);
       res.status(500).json({ message: error.message });
+    }
+  },
+
+  getShops: async (req, res) => {
+    try {
+      const shops = await Shop.find();
+      res.status(200).send(shops);
+    } catch (error) {
+      console.log(error);
+      res.status(500).send({ message: error.message });
+    }
+  },
+
+  getBranchesForShop: async (req, res) => {
+    try {
+  
+      const { shopName } = req.params;
+  
+      if (!shopName) {
+        return res.status(400).send({ message: "Please provide shop name" });
+      }
+
+      const shop = await Shop.findOne({ shop_name: shopName });
+      if (!shop) {
+        return res.status(404).send({ message: "Shop not found" });
+      }
+
+      const branches = await Branch.find({ shop_id: shop._id });
+      res.status(200).send(branches);
+    } catch (error) {
+      console.log(error);
+      res.status(500).send({ message: error.message });
     }
   },
 };

@@ -47,7 +47,10 @@ CashierSchema.methods.comparePassword = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
 
-CashierSchema.index({ shop_id: 1, branch_id: 1, username: 1 }, { unique: true });
+CashierSchema.index(
+  { shop_id: 1, branch_id: 1, username: 1 },
+  { unique: true }
+);
 
 const Cashier = mongoose.model("Cashier", CashierSchema);
 module.exports = Cashier;

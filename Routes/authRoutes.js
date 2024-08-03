@@ -9,5 +9,7 @@ router.post("/admin/signup", authController.addShop); // hidden
 router.post("/admin/login", authController.adminLogin);
 router.post("/manager/login", authController.managerLogin);
 router.post("/cashier/login", authController.cashierLogin);
+router.get("/shops", authController.getShops);
+router.get("/branches/:shopName", authController.getBranchesForShop);
 
 module.exports = router;

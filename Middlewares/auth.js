@@ -17,7 +17,6 @@ const authMiddlewares = {
         if (decoded.branchId) req.branchId = decoded.branchId;
         if (decoded.branchName) req.branchName = decoded.branchName;
 
-        console.log(decoded);
         next();
       });
     } catch (err) {
