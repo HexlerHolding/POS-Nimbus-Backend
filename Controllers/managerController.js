@@ -117,7 +117,7 @@ const managerController = {
       });
       await cashier.save();
 
-      res.status(201).json({ message: "Cashier created successfully" });
+      res.status(201).json({ message: "Cashier created successfully", cashier });
     } catch (error) {
       console.log(error);
       res.status(500).json({ message: error.message });
@@ -233,6 +233,21 @@ const managerController = {
       });
 
       res.status(200).json({ products });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ message: error.message });
+    }
+  },
+
+  getCategories: async (req, res) => {
+    try {
+      const shopId = req.shopId;
+      if (!shopId) {
+        return res.status(400).json({ message: "Please provide shop name" });
+      }
+
+      const categories = await Category.find({ shop_id: shopId, status: true });
+      res.status(200).json(categories);
     } catch (error) {
       console.log(error);
       res.status(500).json({ message: error.message });

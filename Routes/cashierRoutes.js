@@ -6,15 +6,20 @@ const cashierController = require("../Controllers/cashierController");
 router.get("/products", mw.verifyToken, cashierController.getProducts);
 router.get("/orders", mw.verifyToken, cashierController.getOrders);
 router.get("/orders/active", mw.verifyToken, cashierController.getActiveOrders);
-router.get("/orders/active", mw.verifyToken, cashierController.getActiveOrders);
+router.get(
+  "/orders/pending",
+  mw.verifyToken,
+  cashierController.getPendingOrders
+);
 
 router.post("/order/add", mw.verifyToken, cashierController.addOrder);
 
 router.put(
-  "/order/complete/:id",
+  "/order/:id/complete",
   mw.verifyToken,
   cashierController.completeOrder
 );
-router.put("/order/cancel/:id", mw.verifyToken, cashierController.cancelOrder);
+router.put("/order/:id/ready", mw.verifyToken, cashierController.readyOrder);
+router.put("/order/:id/cancel", mw.verifyToken, cashierController.cancelOrder);
 
 module.exports = router;

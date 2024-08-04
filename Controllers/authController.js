@@ -62,7 +62,6 @@ const authController = {
 
   addShop: async (req, res) => {
     try {
-   
       const { shopName, email, password } = req.body;
       if (!shopName || !email || !password) {
         return res.status(400).json({ message: "Please fill in all fields" });
@@ -80,7 +79,6 @@ const authController = {
 
   adminLogin: async (req, res) => {
     try {
-  
       const { shopName, password } = req.body;
       if (!shopName || !password) {
         return res.status(400).json({ message: "Please fill in all fields" });
@@ -96,7 +94,8 @@ const authController = {
       const role = "admin";
       const token = jwt.sign(
         { id: shop._id, role: role, shopId: shop._id, shopName: shopName },
-        process.env.JWT_SECRET
+        process.env.JWT_SECRET,
+        { expiresIn: "12h" }
       );
 
       res
@@ -156,7 +155,8 @@ const authController = {
           branchId: branch._id,
           branchName,
         },
-        process.env.JWT_SECRET
+        process.env.JWT_SECRET,
+        { expiresIn: "12h" }
       );
 
       res
@@ -168,7 +168,7 @@ const authController = {
         })
         .json({ role: role, shopName, branchName });
 
-        console.log("Manager login successful");
+      console.log("Manager login successful");
     } catch (error) {
       console.log(error);
       res.status(500).json({ message: error.message });
@@ -178,6 +178,8 @@ const authController = {
   cashierLogin: async (req, res) => {
     try {
       const { shopName, branchName, username, password } = req.body;
+      // console.log(shopName, branchName, username, password);
+      
       if (!username || !password || !shopName || !branchName) {
         return res.status(400).json({ message: "Please fill in all fields" });
       }
@@ -218,7 +220,8 @@ const authController = {
           branchId: branch._id,
           branchName,
         },
-        process.env.JWT_SECRET
+        process.env.JWT_SECRET,
+        { expiresIn: "12h" }
       );
 
       res
@@ -247,9 +250,8 @@ const authController = {
 
   getBranchesForShop: async (req, res) => {
     try {
-  
       const { shopName } = req.params;
-  
+
       if (!shopName) {
         return res.status(400).send({ message: "Please provide shop name" });
       }

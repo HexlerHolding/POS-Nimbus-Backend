@@ -22,6 +22,12 @@ router.get(
   mw.verifyManager,
   managerController.getProducts
 );
+router.get(
+  "/categories",
+  mw.verifyToken,
+  mw.verifyManager,
+  managerController.getCategories
+);
 
 router.post(
   "/cashier/add",
