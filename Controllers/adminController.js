@@ -3,6 +3,7 @@ const Branch = require("../Models/Branch");
 const Manager = require("../Models/Manager");
 const Category = require("../Models/Category");
 const Order = require("../Models/Order");
+const Product = require("../Models/Product");
 const mongoose = require("mongoose");
 
 const adminController = {
@@ -130,6 +131,8 @@ const adminController = {
         total_tables,
         opening_time,
         closing_time,
+        card_tax,
+        cash_tax,
       } = req.body;
 
       if (!branchName || !address || !city || !contact) {
@@ -151,6 +154,8 @@ const adminController = {
         total_tables,
         opening_time,
         closing_time,
+        card_tax,
+        cash_tax,
       });
 
       await branch.save();
@@ -353,6 +358,64 @@ const adminController = {
 
       const categories = await Category.find({ shop_id: shopId, status: true });
       res.status(200).json(categories);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ message: error.message });
+    }
+  },
+
+  getAllProducts: async (req, res) => {
+    try {
+      const shopId = req.shopId;
+      if (!shopId) {
+        return res.status(400).json({ message: "Please provide shop name" });
+      }
+
+      const products = await Product.find({ shop_id: shopId });
+      res.status(200).json(products);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ message: error.message });
+    }
+  },
+
+  getNumberOfBranches: async (req, res) => {
+    try {
+      const shopId = req.shopId;
+      if (!shopId) {
+        return res.status(400).json({ message: "Please provide shop name" });
+      }
+
+      const branches = await Branch.find({ shop_id: shopId });
+      res.status(200).json({ numberOfBranches: branches.length });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ message: error.message });
+    }
+  },
+
+  getBranchesSales: async (req, res) => {
+    try {
+      const shopId = req.shopId;
+      if (!shopId) {
+        return res.status(400).json({ message: "Please provide shop name" });
+      }
+
+      const branches = await Branch.find({ shop_id: shopId });
+      let branchSales = [];
+      for (let i = 0; i < branches.length; i++) {
+        let branch = branches[i];
+        let sales = 0;
+        //get all orders for the branch
+        const orders = await Order.find({ branch_id: branch._id });
+        //sum the total amount of all orders
+        for (let j = 0; j < orders.length; j++) {
+          sales += orders[j].total;
+        }
+        branchSales.push({ branch: branch.branch_name, sales });
+      }
+
+      res.status(200).json(branchSales);
     } catch (error) {
       console.log(error);
       res.status(500).json({ message: error.message });

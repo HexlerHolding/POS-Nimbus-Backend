@@ -34,6 +34,26 @@ router.get(
   mw.verifyAdmin,
   adminController.getCategories
 );
+router.get(
+  "/products",
+  mw.verifyToken,
+  mw.verifyAdmin,
+  adminController.getAllProducts
+);
+
+router.get(
+  "/branches/count",
+  mw.verifyToken,
+  mw.verifyAdmin,
+  adminController.getNumberOfBranches
+);
+
+router.get(
+  "/branches/sales",
+  mw.verifyToken,
+  mw.verifyAdmin,
+  adminController.getBranchesSales
+);
 
 router.post(
   "/branch/add",

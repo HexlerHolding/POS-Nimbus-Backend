@@ -65,6 +65,14 @@ const BranchSchema = new Schema({
     type: Number,
     default: 3,
   },
+  card_tax: {
+    type: Number,
+    default: 0,
+  },
+  cash_tax: {
+    type: Number,
+    default: 0,
+  },
 });
 
 BranchSchema.index({ shop_id: 1, branch_name: 1 }, { unique: true });

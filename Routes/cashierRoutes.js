@@ -11,6 +11,8 @@ router.get(
   mw.verifyToken,
   cashierController.getPendingOrders
 );
+router.get("/taxes", mw.verifyToken, cashierController.getTaxes);
+router.get("/branch/status", mw.verifyToken, cashierController.getBranchStatus);
 
 router.post("/order/add", mw.verifyToken, cashierController.addOrder);
 

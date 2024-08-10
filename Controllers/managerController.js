@@ -3,6 +3,7 @@ const Branch = require("../Models/Branch");
 const Cashier = require("../Models/Cashier");
 const Product = require("../Models/Product");
 const Category = require("../Models/Category");
+const Order = require("../Models/Order");
 const mongoose = require("mongoose");
 const { v4: uuidv4 } = require("uuid");
 const multer = require("multer");
@@ -117,7 +118,9 @@ const managerController = {
       });
       await cashier.save();
 
-      res.status(201).json({ message: "Cashier created successfully", cashier });
+      res
+        .status(201)
+        .json({ message: "Cashier created successfully", cashier });
     } catch (error) {
       console.log(error);
       res.status(500).json({ message: error.message });
@@ -251,6 +254,149 @@ const managerController = {
     } catch (error) {
       console.log(error);
       res.status(500).json({ message: error.message });
+    }
+  },
+
+  updateBranchTimings: async (req, res) => {
+    try {
+      const { shopId, branchId } = req;
+      if (!shopId || !branchId) {
+        return res.status(400).send({ message: "Please provide ids" });
+      }
+
+      const { branchGot } = req.body;
+
+      const { opening_time, closing_time } = branchGot;
+      if (!opening_time || !closing_time) {
+        return res.status(400).send({ message: "Please provide timings" });
+      }
+
+      const branch = await Branch.findOne({
+        shop_id: shopId,
+        _id: branchId,
+      });
+      if (!branch) {
+        return res.status(404).send({ message: "Branch not found" });
+      }
+
+      branch.opening_time = opening_time;
+      branch.closing_time = closing_time;
+      await branch.save();
+
+      res.status(200).send({ message: "Timings updated successfully" });
+    } catch (error) {
+      console.log(error);
+      res.status(500).send({ message: error.message });
+    }
+  },
+
+  openBranch: async (req, res) => {
+    try {
+      const { shopId, branchId } = req;
+      if (!shopId || !branchId) {
+        return res.status(400).send({ message: "Please provide ids" });
+      }
+
+      const branch = await Branch.findOne({
+        shop_id: shopId,
+        _id: branchId,
+      });
+      if (!branch) {
+        return res.status(404).send({ message: "Branch not found" });
+      }
+
+      branch.shift_status = true;
+      branch.day_number = branch.day_number + 1;
+
+      await branch.save();
+
+      res.status(200).send({ message: "Branch opened successfully" });
+    } catch (error) {
+      console.log(error);
+      res.status(500).send({ message: error.message });
+    }
+  },
+
+  closeBranch: async (req, res) => {
+    try {
+      const { shopId, branchId } = req;
+      if (!shopId || !branchId) {
+        return res.status(400).send({ message: "Please provide ids" });
+      }
+
+      const branch = await Branch.findOne({
+        shop_id: shopId,
+        _id: branchId,
+      });
+      if (!branch) {
+        return res.status(404).send({ message: "Branch not found" });
+      }
+
+      branch.shift_status = false;
+
+      await branch.save();
+
+      res.status(200).send({ message: "Branch closed successfully" });
+    } catch (error) {
+      console.log(error);
+      res.status(500).send({ message: error.message });
+    }
+  },
+
+  updateCashOnHand: async (req, res) => {
+    try {
+      const { shopId, branchId } = req;
+      if (!shopId || !branchId) {
+        return res.status(400).send({ message: "Please provide ids" });
+      }
+
+      const { cash_on_hand } = req.body;
+      if (!cash_on_hand) {
+        return res.status(400).send({ message: "Please provide cash on hand" });
+      }
+
+      const branch = await Branch.findOne({
+        shop_id: shopId,
+        _id: branchId,
+      });
+      if (!branch) {
+        return res.status(404).send({ message: "Branch not found" });
+      }
+
+      branch.cash_on_hand = cash_on_hand;
+      await branch.save();
+
+      res.status(200).send({ message: "Cash on hand updated successfully" });
+    } catch (error) {
+      console.log(error);
+      res.status(500).send({ message: error.message });
+    }
+  },
+
+  getBranchOrders: async (req, res) => {
+    try {
+      const { shopId, branchId } = req;
+      if (!shopId || !branchId) {
+        return res.status(400).send({ message: "Please provide ids" });
+      }
+
+      const branch = await Branch.findOne({
+        shop_id: shopId,
+        _id: branchId,
+      });
+      if (!branch) {
+        return res.status(404).send({ message: "Branch not found" });
+      }
+
+      const orders = await Order.find({
+        shop_id: shopId,
+        branch_id: branchId,
+      });
+
+      res.status(200).send({ orders });
+    } catch (error) {
+      console.log(error);
+      res.status(500).send({ message: error.message });
     }
   },
 };

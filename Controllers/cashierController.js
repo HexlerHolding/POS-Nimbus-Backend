@@ -1,5 +1,6 @@
 const Order = require("../Models/Order");
 const Product = require("../Models/Product");
+const Branch = require("../Models/Branch");
 
 const cashierController = {
   getProducts: async (req, res) => {
@@ -211,6 +212,42 @@ const cashierController = {
       await order.save();
 
       res.status(200).send({ message: "Order cancelled successfully" });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ message: error.message });
+    }
+  },
+
+  getTaxes: async (req, res) => {
+    try {
+      const { branchId } = req;
+      if (!branchId) {
+        return res.status(400).send({ message: "Please provide branch id" });
+      }
+      const branch = await Branch.findById(branchId);
+      if (!branch) {
+        return res.status(404).send({ message: "Branch not found" });
+      }
+      res
+        .status(200)
+        .send({ cash_tax: branch.cash_tax, card_tax: branch.card_tax });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ message: error.message });
+    }
+  },
+
+  getBranchStatus: async (req, res) => {
+    try {
+      const { branchId } = req;
+      if (!branchId) {
+        return res.status(400).send({ message: "Please provide branch id" });
+      }
+      const branch = await Branch.findById(branchId);
+      if (!branch) {
+        return res.status(404).send({ message: "Branch not found" });
+      }
+      res.status(200).send({ status: branch.shift_status });
     } catch (error) {
       console.log(error);
       res.status(500).json({ message: error.message });
