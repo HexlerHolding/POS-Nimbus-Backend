@@ -399,6 +399,42 @@ const managerController = {
       res.status(500).send({ message: error.message });
     }
   },
+
+  updateTax: async (req, res) => {
+    try {
+      const { shopId, branchId } = req;
+      if (!shopId || !branchId) {
+        return res.status(400).send({ message: "Please provide ids" });
+      }
+
+      const { cardTax, cashTax } = req.body;
+      if (!cardTax && !cashTax) {
+        return res.status(400).send({ message: "Please provide tax" });
+      }
+
+      const branch = await Branch.findOne({
+        shop_id: shopId,
+        _id: branchId,
+      });
+      if (!branch) {
+        return res.status(404).send({ message: "Branch not found" });
+      }
+
+      if (cardTax !== undefined && cardTax !== null) {
+        branch.card_tax = cardTax;
+      }
+      if (cashTax !== undefined && cashTax !== null) {
+        branch.cash_tax = cashTax;
+      }
+
+      await branch.save();
+
+      res.status(200).send({ message: "Tax updated successfully" });
+    } catch (error) {
+      console.log(error);
+      res.status(500).send({ message: error.message });
+    }
+  },
 };
 
 module.exports = managerController;

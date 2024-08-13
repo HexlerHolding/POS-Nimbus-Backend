@@ -25,7 +25,10 @@ const cashierController = {
         return res.status(400).send({ message: "Please provide ids" });
       }
 
-      const orders = await Order.find({ shop_id: shopId, branch_id: branchId });
+      const orders = await Order.find({
+        shop_id: shopId,
+        branch_id: branchId,
+      }).sort({ _id: -1 });
 
       res.status(200).send(orders);
     } catch (error) {
