@@ -55,7 +55,7 @@ const adminController = {
         return res.status(400).send({ message: "Please provide shop name" });
       }
 
-      const orders = await Order.find({ shop_id: shopId });
+      const orders = await Order.find({ shop_id: shopId }).sort({ _id: -1 });
       res.status(200).send(orders);
     } catch (error) {
       console.log(error);

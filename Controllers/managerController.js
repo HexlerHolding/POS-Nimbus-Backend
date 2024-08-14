@@ -391,7 +391,7 @@ const managerController = {
       const orders = await Order.find({
         shop_id: shopId,
         branch_id: branchId,
-      });
+      }).sort({ _id: -1 });
 
       res.status(200).send({ orders });
     } catch (error) {
