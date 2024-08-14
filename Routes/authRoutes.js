@@ -12,5 +12,6 @@ router.post("/admin/signup", authController.addShop); // hidden
 router.post("/admin/login", authController.adminLogin);
 router.post("/manager/login", authController.managerLogin);
 router.post("/cashier/login", authController.cashierLogin);
+router.post("/logout", authController.logout);
 
 module.exports = router;

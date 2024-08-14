@@ -179,7 +179,7 @@ const authController = {
     try {
       const { shopName, branchName, username, password } = req.body;
       // console.log(shopName, branchName, username, password);
-      
+
       if (!username || !password || !shopName || !branchName) {
         return res.status(400).json({ message: "Please fill in all fields" });
       }
@@ -236,6 +236,13 @@ const authController = {
       console.log(error);
       res.status(500).json({ message: error.message });
     }
+  },
+
+  logout: async (req, res) => {
+    res
+      .status(200)
+      .clearCookie("token")
+      .json({ message: "Logged out successfully" });
   },
 
   getShops: async (req, res) => {
