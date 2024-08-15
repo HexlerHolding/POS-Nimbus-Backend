@@ -26,6 +26,10 @@ const OrderSchema = new Schema({
     type: Number,
     required: true,
   },
+  grand_total: {
+    type: Number,
+    required: true,
+  },
   customer_name: {
     type: String,
     required: true,

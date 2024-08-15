@@ -87,6 +87,7 @@ const cashierController = {
       const {
         products,
         total,
+        grand_total,
         customer_name,
         payment_method,
         order_type,
@@ -100,6 +101,7 @@ const cashierController = {
       if (
         !products ||
         !total ||
+        !grand_total ||
         !customer_name ||
         !payment_method ||
         !order_type ||
@@ -110,6 +112,7 @@ const cashierController = {
         console.log(
           !products,
           !total,
+          !grand_total,
           !customer_name,
           !payment_method,
           !order_type,
@@ -136,6 +139,7 @@ const cashierController = {
       const order = new Order({
         cart,
         total,
+        grand_total,
         customer_name,
         payment_method,
         order_type,
