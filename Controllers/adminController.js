@@ -410,7 +410,7 @@ const adminController = {
         const orders = await Order.find({ branch_id: branch._id });
         //sum the total amount of all orders
         for (let j = 0; j < orders.length; j++) {
-          sales += orders[j].total;
+          sales += orders[j].grand_total;
         }
         branchSales.push({ branch: branch.branch_name, sales });
       }

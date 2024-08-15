@@ -150,7 +150,17 @@ const cashierController = {
         branch_id: branchId,
       });
 
+      const branch = await Branch.findById(branchId);
+      if (!branch) {
+        return res.status(404).send({ message: "Branch not found" });
+      }
+      
+
+      // add grand total to branch sales
+      branch.sales.push({ date: new Date(), amount: grand_total });
+      console.log(branch.sales);
       await order.save();
+      await branch.save();
 
       res.status(200).send({ message: "Order placed successfully", order });
     } catch (error) {
