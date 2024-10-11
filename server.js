@@ -32,11 +32,6 @@ mongoose
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.log(err));
 
-// mongoose
-//   .connect("mongodb://127.0.0.1:27017/restaurant")
-//   .then(() => console.log("MongoDB connected"))
-//   .catch((err) => console.log("Error: ", err));
-
 app.use(express.json({ limit: "50mb" }));
 app.use(
   cors({

@@ -6,8 +6,7 @@ const authController = require("../Controllers/authController");
 router.get("/shops", authController.getShops);
 router.get("/branches/:shopName", authController.getBranchesForShop);
 
-// router.post("/signup", authController.signup);
-// router.post("/login", authController.login);
+
 router.post("/admin/signup", authController.addShop); // hidden
 router.post("/admin/login", authController.adminLogin);
 router.post("/manager/login", authController.managerLogin);
