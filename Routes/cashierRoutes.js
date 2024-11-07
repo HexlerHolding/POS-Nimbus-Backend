@@ -21,7 +21,6 @@ router.put(
   mw.verifyToken,
   cashierController.completeOrder
 );
-router.put("/order/:id/ready", mw.verifyToken, cashierController.readyOrder);
 router.put("/order/:id/cancel", mw.verifyToken, cashierController.cancelOrder);
 
 module.exports = router;

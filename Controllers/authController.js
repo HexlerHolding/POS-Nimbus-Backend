@@ -6,7 +6,7 @@ const Shop = require("../Models/Shop");
 const Branch = require("../Models/Branch");
 const Manager = require("../Models/Manager");
 const Cashier = require("../Models/Cashier");
-
+const Kitchen = require("../Models/Kitchen");
 const authController = {
   /*
   signup: async (req, res) => {
@@ -214,6 +214,67 @@ const authController = {
       const token = jwt.sign(
         {
           id: cashier._id,
+          role: role,
+          shopId: shop._id,
+          shopName,
+          branchId: branch._id,
+          branchName,
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: "12h" }
+      );
+
+      res
+        .status(200)
+        .cookie("token", token, {
+          httpOnly: true,
+          sameSite: "none",
+          secure: true,
+        })
+        .json({ role: role, shopName, branchName });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ message: error.message });
+    }
+  },
+
+  kitchenLogin: async (req, res) => {
+    try {
+      const { shopName, branchName, username, password } = req.body;
+      if (!username || !password || !shopName || !branchName) {
+        return res.status(400).json({ message: "Please fill in all fields" });
+      }
+
+      const shop = await Shop.findOne({ shop_name: shopName });
+      if (!shop) {
+        return res.status(404).json({ message: "Shop not found" });
+      }
+
+      const branch = await Branch.findOne({
+        shop_id: shop._id,
+        branch_name: branchName,
+      });
+      if (!branch) {
+        return res.status(404).json({ message: "Branch not found" });
+      }
+
+      const kitchen = await Kitchen.findOne({
+        shop_id: shop._id,
+        branch_id: branch._id,
+        username,
+      });
+      if (!kitchen) {
+        return res.status(400).json({ message: "Invalid credentials" });
+      }
+      const isMatch = await kitchen.comparePassword(password);
+      if (!isMatch) {
+        return res.status(400).json({ message: "Invalid credentials" });
+      }
+
+      const role = "kitchen";
+      const token = jwt.sign(
+        {
+          id: kitchen._id,
           role: role,
           shopId: shop._id,
           shopName,

@@ -52,11 +52,13 @@ const authRoutes = require("./Routes/authRoutes");
 const adminRoutes = require("./Routes/adminRoutes");
 const managerRoutes = require("./Routes/managerRoutes");
 const cashierRoutes = require("./Routes/cashierRoutes");
+const kitchenRoutes = require("./Routes/kitchenRoutes");
 
 app.use("/auth", authRoutes);
 app.use("/admin", adminRoutes);
 app.use("/manager", managerRoutes);
 app.use("/cashier", cashierRoutes);
+app.use("/kitchen", kitchenRoutes);
 
 // // SSL options
 // const options = {

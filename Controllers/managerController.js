@@ -4,6 +4,7 @@ const Cashier = require("../Models/Cashier");
 const Product = require("../Models/Product");
 const Category = require("../Models/Category");
 const Order = require("../Models/Order");
+const Kitchen = require("../Models/Kitchen");
 const mongoose = require("mongoose");
 const { v4: uuidv4 } = require("uuid");
 const multer = require("multer");
@@ -152,6 +153,68 @@ const managerController = {
     }
   },
 
+  addKitchen: async (req, res) => {
+    try {
+      const { shopId, branchId } = req;
+      if (!shopId || !branchId) {
+        return res.status(400).send({ message: "Please provide ids" });
+      }
+
+      const { username, password } = req.body;
+      if (!username || !password) {
+        return res.status(400).json({ message: "Please fill in all fields" });
+      }
+
+      const branch = await Branch.findOne({
+        shop_id: shopId,
+        _id: branchId,
+      });
+      if (!branch) {
+        return res.status(404).json({ message: "Branch not found" });
+      }
+
+      const kitchen = new Kitchen({
+        shop_id: shopId,
+        branch_id: branch._id,
+        username,
+        password,
+      });
+      await kitchen.save();
+
+      res
+        .status(201)
+        .json({ message: "Kitchen created successfully", kitchen });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ message: error.message });
+    }
+  },
+
+  getKitchens: async (req, res) => {
+    try {
+      const shopId = req.shopId;
+      if (!shopId) {
+        return res.status(400).json({ message: "Please provide shop name" });
+      }
+
+      const branchId = req.branchId;
+      const branchName = req.branchName;
+      if (!branchId || !branchName) {
+        return res.status(400).json({ message: "Please provide branch name" });
+      }
+
+      const kitchens = await Kitchen.find({
+        shop_id: shopId,
+        branch_id: branchId,
+      });
+
+      res.status(200).json({ kitchens, branchName });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ message: error.message });
+    }
+  },
+
   addProduct: [
     upload.single("image"),
     async (req, res) => {
@@ -250,6 +313,7 @@ const managerController = {
       }
 
       const categories = await Category.find({ shop_id: shopId, status: true });
+      console.log(categories);
       res.status(200).json(categories);
     } catch (error) {
       console.log(error);

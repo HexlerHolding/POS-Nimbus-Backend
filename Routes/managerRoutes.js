@@ -17,6 +17,12 @@ router.get(
   managerController.getCashiers
 );
 router.get(
+  "/kitchens",
+  mw.verifyToken,
+  mw.verifyManager,
+  managerController.getKitchens
+);
+router.get(
   "/products",
   mw.verifyToken,
   mw.verifyManager,
@@ -40,6 +46,12 @@ router.post(
   mw.verifyToken,
   mw.verifyManager,
   managerController.addCashier
+);
+router.post(
+  "/kitchen/add",
+  mw.verifyToken,
+  mw.verifyManager,
+  managerController.addKitchen
 );
 router.post(
   "/product/add",
