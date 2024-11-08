@@ -46,6 +46,17 @@ const authMiddlewares = {
       return res.status(403).send({ message: "Require Manager Role!" });
     next();
   },
+
+  verifyCashier: (req, res, next) => {
+    if (
+      req.role !== "cashier" &&
+      req.role !== "manager" &&
+      req.role !== "admin" &&
+      req.role !== "superadmin"
+    )
+      return res.status(403).send({ message: "Require Cashier Role!" });
+    next();
+  },
 };
 
 module.exports = authMiddlewares;

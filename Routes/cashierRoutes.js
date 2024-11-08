@@ -3,24 +3,61 @@ const router = express.Router();
 const mw = require("../Middlewares/auth");
 const cashierController = require("../Controllers/cashierController");
 
-router.get("/products", mw.verifyToken, cashierController.getProducts);
-router.get("/orders", mw.verifyToken, cashierController.getOrders);
-router.get("/orders/active", mw.verifyToken, cashierController.getActiveOrders);
+router.get(
+  "/products",
+  mw.verifyToken,
+  mw.verifyCashier,
+  cashierController.getProducts
+);
+router.get(
+  "/orders",
+  mw.verifyToken,
+  mw.verifyCashier,
+  cashierController.getOrders
+);
+router.get(
+  "/orders/active",
+  mw.verifyToken,
+  mw.verifyCashier,
+  cashierController.getActiveOrders
+);
 router.get(
   "/orders/pending",
   mw.verifyToken,
+  mw.verifyCashier,
   cashierController.getPendingOrders
 );
-router.get("/taxes", mw.verifyToken, cashierController.getTaxes);
-router.get("/branch/status", mw.verifyToken, cashierController.getBranchStatus);
+router.get(
+  "/taxes",
+  mw.verifyToken,
+  mw.verifyCashier,
+  cashierController.getTaxes
+);
+router.get(
+  "/branch/status",
+  mw.verifyToken,
+  mw.verifyCashier,
+  cashierController.getBranchStatus
+);
 
-router.post("/order/add", mw.verifyToken, cashierController.addOrder);
+router.post(
+  "/order/add",
+  mw.verifyToken,
+  mw.verifyCashier,
+  cashierController.addOrder
+);
 
 router.put(
   "/order/:id/complete",
   mw.verifyToken,
+  mw.verifyCashier,
   cashierController.completeOrder
 );
-router.put("/order/:id/cancel", mw.verifyToken, cashierController.cancelOrder);
+router.put(
+  "/order/:id/cancel",
+  mw.verifyToken,
+  mw.verifyCashier,
+  cashierController.cancelOrder
+);
 
 module.exports = router;
