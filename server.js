@@ -55,6 +55,7 @@ app.use(
       "http://localhost:3000",
       "https://nimbus360.org",
       "https://nimbus360restaurant.vercel.app",
+      "https://pos-nimbus.vercel.app",
     ],
     credentials: true,
   })
