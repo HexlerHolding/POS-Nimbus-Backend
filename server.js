@@ -2,25 +2,37 @@ const cookieParser = require("cookie-parser");
 const mongoose = require("mongoose");
 const express = require("express");
 const dotenv = require("dotenv");
-const https = require("https");
 const cors = require("cors");
-const fs = require("fs");
-const app = express();
 const admin = require("firebase-admin");
-const serviceAccount = require("./serviceaccount.json");
-
-app.use(cookieParser());
-app.use(express.json());
 
 dotenv.config();
 
+const app = express();
+app.use(cookieParser());
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Firebase Admin Initialization
 try {
+  const serviceAccount = {
+    type: process.env.FIREBASE_TYPE,
+    project_id: process.env.FIREBASE_PROJECT_ID,
+    private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
+    private_key: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+    client_email: process.env.FIREBASE_CLIENT_EMAIL,
+    client_id: process.env.FIREBASE_CLIENT_ID,
+    auth_uri: process.env.FIREBASE_AUTH_URI,
+    token_uri: process.env.FIREBASE_TOKEN_URI,
+    auth_provider_x509_cert_url: process.env.FIREBASE_AUTH_PROVIDER_CERT_URL,
+    client_x509_cert_url: process.env.FIREBASE_CLIENT_CERT_URL,
+    universe_domain: process.env.FIREBASE_UNIVERSE_DOMAIN,
+  };
+
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    storageBucket: "gs://nimbus-system.appspot.com",
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
   });
+
   console.log("Firebase Admin Initialized");
 } catch (err) {
   console.log("Firebase Admin Already Initialized");
@@ -28,20 +40,28 @@ try {
 
 // Connect to MongoDB
 mongoose
-  .connect("mongodb+srv://hexlertech:ht_70707070@nimbuscluster.ud3bqgb.mongodb.net/?retryWrites=true&w=majority&appName=NimbusCluster")
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => console.log("MongoDB connected"))
-  .catch((err) => console.log(err));
+  .catch((err) => console.log("MongoDB Connection Error:", err));
 
 app.use(express.json({ limit: "50mb" }));
+
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://nimbus360.org", "https://nimbus360restaurant.vercel.app"],
+    origin: [
+      "http://localhost:3000",
+      "https://nimbus360.org",
+      "https://nimbus360restaurant.vercel.app",
+    ],
     credentials: true,
   })
 );
 
 const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-console.log("timezone: ", timezone);
+console.log("Timezone: ", timezone);
 
 app.get("/", (req, res) => {
   res.send("Welcome to the Warehouse Management System API");
@@ -60,18 +80,7 @@ app.use("/manager", managerRoutes);
 app.use("/cashier", cashierRoutes);
 app.use("/kitchen", kitchenRoutes);
 
-// // SSL options
-// const options = {
-//   key: fs.readFileSync('/etc/letsencrypt/live/nimbus360.org/privkey.pem'),
-//   cert: fs.readFileSync('/etc/letsencrypt/live/nimbus360.org/fullchain.pem')
-// };
-
 const PORT = process.env.PORT || 3001;
-
-// // Create HTTPS server
-// https.createServer(options, app).listen(PORT, () => {
-//   console.log(`HTTPS Server is running on port ${PORT}`);
-// });
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
