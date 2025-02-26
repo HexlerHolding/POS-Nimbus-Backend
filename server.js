@@ -57,6 +57,7 @@ app.use(
       "https://nimbus360restaurant.vercel.app",
       "https://pos-nimbus.vercel.app",
       "https://pos-nimbus-git-main-yousufs-projects-7e4ac320.vercel.app",
+      "https://pos-nimbus-jx4ynhch5-yousufs-projects-7e4ac320.vercel.app",
     ],
     credentials: true,
   })
