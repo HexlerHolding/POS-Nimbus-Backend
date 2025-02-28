@@ -326,7 +326,7 @@ const adminController = {
 
   addCategory: async (req, res) => {
     try {
-      const shopId = req.shopId;
+      const shopId = req.body.shopId;
       if (!shopId) {
         return res.status(400).json({ message: "Please provide shop name" });
       }
