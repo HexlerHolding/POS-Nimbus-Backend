@@ -99,5 +99,33 @@ router.delete(
   mw.verifyAdmin,
   adminController.deleteBranch
 );
+router.put(
+  "/manager/update",
+  mw.verifyToken,
+  mw.verifyAdmin,
+  adminController.updateManager
+);
+
+// For deleting a manager
+router.delete(
+  "/manager/delete",
+  mw.verifyToken,
+  mw.verifyAdmin,
+  adminController.deleteManager
+);
+router.get(
+  "/tax/fbr-rates",
+  mw.verifyToken,
+  mw.verifyAdmin,
+  adminController.getFbrTaxRates
+);
+
+// Route to update a branch with current FBR tax rates
+router.put(
+  "/branch/update-fbr-taxes",
+  mw.verifyToken,
+  mw.verifyAdmin,
+  adminController.updateBranchWithFbrTaxes
+);
 
 module.exports = router;
