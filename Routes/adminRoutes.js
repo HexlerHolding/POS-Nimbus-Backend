@@ -80,7 +80,19 @@ router.put(
   mw.verifyAdmin,
   adminController.updateBranch
 );
+router.put(
+  "/category/update",
+  mw.verifyToken,
+  mw.verifyAdmin,
+  adminController.updateCategory
+);
 
+router.delete(
+  "/category/delete",
+  mw.verifyToken,
+  mw.verifyAdmin,
+  adminController.deleteCategory
+);
 router.delete(
   "/branch/delete",
   mw.verifyToken,

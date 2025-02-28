@@ -347,6 +347,77 @@ addCategory: async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 },
+// Add these methods to your adminController.js file
+
+// For updating a category
+updateCategory: async (req, res) => {
+  try {
+    const shopId = req.shopId;
+    if (!shopId) {
+      return res.status(400).json({ message: "Please provide shop ID" });
+    }
+
+    const { categoryId, categoryName } = req.body;
+    
+    if (!categoryId || !categoryName) {
+      return res.status(400).json({ message: "Please provide category ID and name" });
+    }
+
+    const category = await Category.findOne({ 
+      _id: categoryId,
+      shop_id: shopId
+    });
+
+    if (!category) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+
+    category.category_name = categoryName;
+    await category.save();
+
+    res.status(200).json({ message: "Category updated successfully" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+},
+
+// For deleting a category
+deleteCategory: async (req, res) => {
+  try {
+    const shopId = req.shopId;
+    if (!shopId) {
+      return res.status(400).json({ message: "Please provide shop ID" });
+    }
+
+    const { categoryId } = req.body;
+    
+    if (!categoryId) {
+      return res.status(400).json({ message: "Please provide category ID" });
+    }
+
+    const category = await Category.findOne({ 
+      _id: categoryId,
+      shop_id: shopId
+    });
+
+    if (!category) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+
+    // Option 1: Soft delete by setting status to false
+    category.status = false;
+    await category.save();
+
+    // Option 2: Hard delete
+    // await Category.deleteOne({ _id: categoryId });
+
+    res.status(200).json({ message: "Category deleted successfully" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+},
 
 
   getCategories: async (req, res) => {
