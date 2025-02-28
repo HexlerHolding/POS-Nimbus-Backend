@@ -324,30 +324,30 @@ const adminController = {
     }
   },
 
-  addCategory: async (req, res) => {
-    try {
-      const shopId = req.body.shopId;
-      if (!shopId) {
-        return res.status(400).json({ message: "Please provide shop name" });
-      }
-
-      const { categoryName } = req.body;
-      if (!categoryName) {
-        return res.status(400).json({ message: "Please fill in all fields" });
-      }
-
-      const category = new Category({
-        category_name: categoryName,
-        shop_id: shopId,
-      });
-      await category.save();
-
-      res.status(201).json({ message: "Category added successfully" });
-    } catch (error) {
-      console.log(error);
-      res.status(500).json({ message: error.message });
+ // In adminController.js for addCategory
+addCategory: async (req, res) => {
+  try {
+    // Get shopId from token instead of request body
+    const shopId = req.shopId; // Middleware should extract this
+    
+    const { categoryName } = req.body;
+    if (!categoryName) {
+      return res.status(400).json({ message: "Please fill in all fields" });
     }
-  },
+
+    const category = new Category({
+      category_name: categoryName,
+      shop_id: shopId,
+    });
+    await category.save();
+
+    res.status(201).json({ message: "Category added successfully" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+},
+
 
   getCategories: async (req, res) => {
     try {

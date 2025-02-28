@@ -58,6 +58,7 @@ app.use(
       "https://pos-nimbus.vercel.app",
       "https://pos-nimbus-git-main-yousufs-projects-7e4ac320.vercel.app",
       "https://pos-nimbus-jx4ynhch5-yousufs-projects-7e4ac320.vercel.app",
+      "https://pos-nimbus-frontend.vercel.app",
     ],
     credentials: true,
   })

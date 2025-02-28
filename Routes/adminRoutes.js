@@ -69,6 +69,8 @@ router.post(
 );
 router.post(
   "/category/add",
+  mw.verifyToken,
+  mw.verifyAdmin,
   adminController.addCategory
 );
 
