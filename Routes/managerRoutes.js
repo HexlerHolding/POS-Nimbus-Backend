@@ -88,4 +88,17 @@ router.put(
   managerController.updateCashOnHand
 );
 
+router.get(
+  "/profile",
+  mw.verifyToken,
+  mw.verifyManager,
+  managerController.getManagerProfile
+);
+// Add this to your manager routes file
+router.put(
+  "/profile/update",
+  mw.verifyToken,
+  mw.verifyManager,
+  managerController.updateManagerProfile
+);
 module.exports = router;

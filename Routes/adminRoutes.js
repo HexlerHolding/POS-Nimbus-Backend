@@ -127,5 +127,21 @@ router.put(
   mw.verifyAdmin,
   adminController.updateBranchWithFbrTaxes
 );
+router.get(
+  "/profile",
+  mw.verifyToken,
+  mw.verifyAdmin,
+  adminController.getAdminProfile
+);
+
+// Update admin profile
+router.put(
+  "/profile/update",
+  mw.verifyToken,
+  mw.verifyAdmin,
+  adminController.updateAdminProfile
+);
+
+// managerRoutes.js - Add this route
 
 module.exports = router;

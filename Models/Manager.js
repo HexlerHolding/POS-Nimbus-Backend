@@ -44,6 +44,8 @@ ManagerSchema.pre("save", async function (next) {
 });
 
 ManagerSchema.methods.comparePassword = async function (password) {
+  console.log("dada");
+  
   return await bcrypt.compare(password, this.password);
 };
 

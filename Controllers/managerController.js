@@ -7,6 +7,7 @@ const Order = require("../Models/Order");
 const Kitchen = require("../Models/Kitchen");
 const mongoose = require("mongoose");
 const { v4: uuidv4 } = require("uuid");
+const Manager = require("../Models/Manager")
 const multer = require("multer");
 const admin = require("firebase-admin");
 const { getProducts } = require("./cashierController");
@@ -499,6 +500,167 @@ const managerController = {
       res.status(500).send({ message: error.message });
     }
   },
+  getManagerProfile: async (req, res) => {
+    try {
+      // Log the entire request to see what's available
+      console.log('Manager Profile Request:', {
+        userId: req.userId,
+        id: req.id,
+        role: req.role,
+        shopId: req.shopId,
+        branchId: req.branchId
+      });
+  
+      // Use req.id if req.userId is not available
+      const managerId = req.userId || req.id;
+      
+      if (!managerId) {
+        return res.status(400).json({ message: "Manager ID not found" });
+      }
+    
+      // Find manager in database
+      const manager = await Manager.findById(managerId).select("-password");
+      if (!manager) {
+        return res.status(404).json({ message: "Manager not found" });
+      }
+    
+      // Get branch and shop information
+      const branch = await Branch.findById(manager.branch_id);
+      const shop = branch ? await Shop.findById(branch.shop_id) : null;
+      
+      // Return manager profile with branch and shop information
+      res.status(200).json({
+        manager: {
+          _id: manager._id,
+          username: manager.username,
+          email: manager.email,
+          first_name: manager.first_name,
+          last_name: manager.last_name,
+          contact: manager.contact,
+          role: "manager"
+        },
+        branch: branch ? {
+          _id: branch._id,
+          name: branch.branch_name,
+          address: branch.address,
+          city: branch.city,
+          contact: branch.contact
+        } : null,
+        shop: shop ? {
+          _id: shop._id,
+          name: shop.name
+        } : null
+      });
+    } catch (error) {
+      console.error('Error in getManagerProfile:', error);
+      res.status(500).json({ message: error.message });
+    }
+  },
+  updateManagerProfile: async (req, res) => {
+    try {
+      const bcrypt = require('bcryptjs'); // Make sure to import bcrypt at the top of the file
+      
+      const managerId = req.userId || req.id;
+      console.log('Manager Profile Request:', {
+        id: req.id,
+        role: req.role,
+        shopId: req.shopId,
+        branchId: req.branchId
+      });
+  
+      if (!managerId) {
+        return res.status(400).json({ message: "Manager ID not found" });
+      }
+  
+      // Find manager in database
+      const manager = await Manager.findById(managerId);
+      if (!manager) {
+        return res.status(404).json({ message: "Manager not found" });
+      }
+  
+      // Destructure request body
+      const { 
+        username, 
+        email, 
+        currentPassword, 
+        newPassword 
+      } = req.body;
+  
+      // Validate current password if trying to update sensitive info
+      if ((email !== manager.email || newPassword) && !currentPassword) {
+        return res.status(400).json({ message: "Current password is required for updates" });
+      }
+  
+      // Check current password if provided
+      if (currentPassword) {
+        const isMatch = await manager.comparePassword(currentPassword);
+        
+        
+        if (!isMatch) {
+          console.log(isMatch);
+          return res.status(400).json({ message: "Current password is incorrect" });
+        }
+      }
+  
+      // Update username if provided and different
+      if (username && username !== manager.username) {
+        // Check if username already exists
+        const existingUsername = await Manager.findOne({ 
+          username, 
+          _id: { $ne: managerId } 
+        });
+        if (existingUsername) {
+          return res.status(400).json({ message: "Username already exists" });
+        }
+        manager.username = username;
+      }
+  
+      // Update email if provided and different
+      if (email && email !== manager.email) {
+        // Check if email already exists
+        const existingEmail = await Manager.findOne({ 
+          email, 
+          _id: { $ne: managerId } 
+        });
+        if (existingEmail) {
+          return res.status(400).json({ message: "Email already in use" });
+        }
+        manager.email = email;
+      }
+  
+      // Update password if new password provided
+      if (newPassword) {
+        // Validate password strength (example criteria)
+        if (newPassword.length < 4) {
+          return res.status(400).json({ message: "Password must be at least 4 characters long" });
+        }
+  
+        // Hash new password
+        manager.password = newPassword
+      }
+  
+      // Save updated manager
+      await manager.save();
+  
+      // Return updated profile (excluding password)
+      res.status(200).json({
+        message: "Profile updated successfully",
+        manager: {
+          _id: manager._id,
+          username: manager.username,
+          email: manager.email,
+          first_name: manager.first_name,
+          last_name: manager.last_name,
+          contact: manager.contact,
+          role: "manager"
+        }
+      });
+    } catch (error) {
+      console.error('Error updating manager profile:', error);
+      res.status(500).json({ message: error.message });
+    }
+  },
 };
+
 
 module.exports = managerController;

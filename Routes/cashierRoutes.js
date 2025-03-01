@@ -59,5 +59,19 @@ router.put(
   mw.verifyCashier,
   cashierController.cancelOrder
 );
+router.get(
+  "/profile",
+  mw.verifyToken,
+  mw.verifyCashier,
+  cashierController.getCashierProfile
+);
+
+// Update cashier profile
+router.put(
+  "/profile/update",
+  mw.verifyToken,
+  mw.verifyCashier,
+  cashierController.updateCashierProfile
+);
 
 module.exports = router;
