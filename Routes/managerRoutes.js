@@ -60,6 +60,40 @@ router.post(
   managerController.addProduct
 );
 
+// New product management routes
+router.put(
+  "/product/update",
+  mw.verifyToken,
+  mw.verifyManager,
+  managerController.updateProduct
+);
+router.delete(
+  "/product/delete",
+  mw.verifyToken,
+  mw.verifyManager,
+  managerController.deleteProduct
+);
+
+// Category management routes for managers
+router.post(
+  "/category/add",
+  mw.verifyToken,
+  mw.verifyManager,
+  managerController.addCategory
+);
+router.put(
+  "/category/update",
+  mw.verifyToken,
+  mw.verifyManager,
+  managerController.updateCategory
+);
+router.delete(
+  "/category/delete/:categoryId",
+  mw.verifyToken,
+  mw.verifyManager,
+  managerController.deleteCategory
+);
+
 router.put(
   "/branch/timings",
   mw.verifyToken,
@@ -94,7 +128,6 @@ router.get(
   mw.verifyManager,
   managerController.getManagerProfile
 );
-// Add this to your manager routes file
 router.put(
   "/profile/update",
   mw.verifyToken,

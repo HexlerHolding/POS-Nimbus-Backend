@@ -115,7 +115,15 @@ const authController = {
   managerLogin: async (req, res) => {
     try {
       const { shopName, branchName, username, password } = req.body;
-      if (!username || !password || !shopName || !branchName) {
+      console.log(shopName, branchName, username, password);
+      //log all of above with mesage
+      console.log("shopName", shopName);
+      console.log("branchName", branchName);
+      console.log("username", username);
+      console.log("password", password);
+      if (!username ) {
+        console.log("Please fill in all fields1");
+        
         return res.status(400).json({ message: "Please fill in all fields" });
       }
 
@@ -138,10 +146,14 @@ const authController = {
         username,
       });
       if (!manager) {
+        console.log("Please fill in all fields2");
+
         return res.status(400).json({ message: "Invalid credentials" });
       }
       const isMatch = await manager.comparePassword(password);
       if (!isMatch) {
+        console.log("Please fill in all fields3");
+
         return res.status(400).json({ message: "Invalid credentials" });
       }
 

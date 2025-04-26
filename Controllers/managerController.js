@@ -464,7 +464,145 @@ const managerController = {
       res.status(500).send({ message: error.message });
     }
   },
+// Add this new function to managerController
 
+addCategory: async (req, res) => {
+  try {
+    const shopId = req.shopId;
+    if (!shopId) {
+      return res.status(400).json({ message: "Please provide shop ID" });
+    }
+
+    const { categoryName } = req.body;
+    if (!categoryName) {
+      return res.status(400).json({ message: "Please provide category name" });
+    }
+
+    // Check if category already exists
+    const categoryExists = await Category.findOne({
+      shop_id: shopId,
+      category_name: categoryName,
+    });
+
+    if (categoryExists) {
+      return res.status(400).json({ message: "Category already exists" });
+    }
+
+    // Create new category
+    const category = new Category({
+      shop_id: shopId,
+      category_name: categoryName,
+    });
+
+    await category.save();
+
+    res.status(201).json({ 
+      message: "Category created successfully",
+      category: category
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+},
+
+updateCategory: async (req, res) => {
+  try {
+    const shopId = req.shopId;
+    if (!shopId) {
+      return res.status(400).json({ message: "Please provide shop ID" });
+    }
+
+    const { categoryId, categoryName } = req.body;
+    if (!categoryId || !categoryName) {
+      return res.status(400).json({ message: "Please provide category ID and name" });
+    }
+
+    // Check if category exists
+    const category = await Category.findOne({
+      _id: categoryId,
+      shop_id: shopId,
+    });
+
+    if (!category) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+
+    // Check if another category with the same name exists
+    const categoryExists = await Category.findOne({
+      shop_id: shopId,
+      category_name: categoryName,
+      _id: { $ne: categoryId },
+    });
+
+    if (categoryExists) {
+      return res.status(400).json({ message: "Category name already exists" });
+    }
+
+    // Update category
+    category.category_name = categoryName;
+    await category.save();
+
+    res.status(200).json({ 
+      message: "Category updated successfully",
+      category: category
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+},
+
+deleteCategory: async (req, res) => {
+  try {
+    const shopId = req.shopId;
+    if (!shopId) {
+      return res.status(400).json({ message: "Please provide shop ID" });
+    }
+
+    const { categoryId } = req.params;
+    if (!categoryId) {
+      return res.status(400).json({ message: "Please provide category ID" });
+    }
+
+    // Check if category exists
+    const category = await Category.findOne({
+      _id: categoryId,
+      shop_id: shopId,
+    });
+
+    if (!category) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+
+    // Check if products are using this category
+    const productsUsingCategory = await Product.countDocuments({
+      shop_id: shopId,
+      category: categoryId,
+      status: true,
+    });
+
+    if (productsUsingCategory > 0) {
+      // Instead of deleting, we can mark it as inactive
+      category.status = false;
+      await category.save();
+      return res.status(200).json({ 
+        message: "Category has been deactivated as it is being used by products",
+        category: category
+      });
+    }
+
+    // Delete category if not being used
+    await Category.findByIdAndDelete(categoryId);
+
+    res.status(200).json({ 
+      message: "Category deleted successfully"
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+},
   updateTax: async (req, res) => {
     try {
       const { shopId, branchId } = req;
@@ -660,6 +798,108 @@ const managerController = {
       res.status(500).json({ message: error.message });
     }
   },
+  // Add these functions to your managerController.js file
+
+updateProduct: async (req, res) => {
+  try {
+    const shopId = req.shopId;
+    if (!shopId) {
+      return res.status(400).json({ message: "Please provide shop ID" });
+    }
+
+    const { 
+      productId, 
+      name, 
+      description, 
+      price, 
+      category, 
+      variation,
+      image,
+      status 
+    } = req.body;
+    
+    if (!productId) {
+      return res.status(400).json({ message: "Please provide product ID" });
+    }
+
+    const product = await Product.findOne({ 
+      _id: productId,
+      shop_id: shopId
+    });
+
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    // Update fields if provided
+    if (name) product.name = name;
+    if (description !== undefined) product.description = description;
+    if (price !== undefined) product.price = price;
+    if (variation !== undefined) product.variation = variation;
+    if (image !== undefined) product.image = image;
+    if (status !== undefined) product.status = status;
+    
+    // If category is being changed, validate and update
+    if (category) {
+      const categoryExists = await Category.findOne({
+        _id: category,
+        shop_id: shopId,
+        status: true
+      });
+      
+      if (!categoryExists) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+      
+      product.category = category;
+    }
+
+    await product.save();
+    res.status(200).json({ 
+      message: "Product updated successfully",
+      product
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+},
+
+deleteProduct: async (req, res) => {
+  try {
+    const shopId = req.shopId;
+    if (!shopId) {
+      return res.status(400).json({ message: "Please provide shop ID" });
+    }
+
+    const { productId } = req.body;
+    
+    if (!productId) {
+      return res.status(400).json({ message: "Please provide product ID" });
+    }
+
+    const product = await Product.findOne({ 
+      _id: productId,
+      shop_id: shopId
+    });
+
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    // Option 1: Soft delete by setting status to false
+    product.status = false;
+    await product.save();
+    
+    // Option 2: Hard delete (uncomment if you prefer hard delete)
+    // await Product.deleteOne({ _id: productId });
+
+    res.status(200).json({ message: "Product deleted successfully" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+}
 };
 
 
