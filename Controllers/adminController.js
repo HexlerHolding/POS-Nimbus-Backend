@@ -25,6 +25,108 @@ const adminController = {
       res.status(500).send({ message: error.message });
     }
   },
+  updateProduct: async (req, res) => {
+    try {
+      const shopId = req.shopId;
+      if (!shopId) {
+        return res.status(400).json({ message: "Please provide shop ID" });
+      }
+  
+      const { 
+        productId, 
+        name, 
+        description, 
+        price, 
+        category, 
+        variation,
+        image,
+        status 
+      } = req.body;
+      
+      if (!productId) {
+        return res.status(400).json({ message: "Please provide product ID" });
+      }
+  
+      const product = await Product.findOne({ 
+        _id: productId,
+        shop_id: shopId
+      });
+  
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+  
+      // Update fields if provided
+      if (name) product.name = name;
+      if (description !== undefined) product.description = description;
+      if (price !== undefined) product.price = price;
+      if (variation !== undefined) product.variation = variation;
+      if (image !== undefined) product.image = image;
+      if (status !== undefined) product.status = status;
+      
+      // If category is being changed, validate and update
+      if (category) {
+        const categoryExists = await Category.findOne({
+          _id: category,
+          shop_id: shopId,
+          status: true
+        });
+        
+        if (!categoryExists) {
+          return res.status(404).json({ message: "Category not found" });
+        }
+        
+        product.category = category;
+      }
+  
+      await product.save();
+      res.status(200).json({ 
+        message: "Product updated successfully",
+        product
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ message: error.message });
+    }
+  },
+  
+  // For deleting a product
+  deleteProduct: async (req, res) => {
+    try {
+      const shopId = req.shopId;
+      if (!shopId) {
+        return res.status(400).json({ message: "Please provide shop ID" });
+      }
+  
+      const { productId } = req.body;
+      
+      if (!productId) {
+        return res.status(400).json({ message: "Please provide product ID" });
+      }
+  
+      const product = await Product.findOne({ 
+        _id: productId,
+        shop_id: shopId
+      });
+  
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+  
+      // Option 1: Soft delete by setting status to false
+      product.status = false;
+      await product.save();
+      
+      // Option 2: Hard delete (uncomment if you prefer hard delete)
+      // await Product.deleteOne({ _id: productId });
+  
+      res.status(200).json({ message: "Product deleted successfully" });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ message: error.message });
+    }
+  },
+  
 
   getBranches: async (req, res) => {
     try {

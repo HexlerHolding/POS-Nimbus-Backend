@@ -16,6 +16,20 @@ router.get(
   mw.verifyAdmin,
   adminController.getBranches
 );
+router.put(
+  "/product/update",
+  mw.verifyToken,
+  mw.verifyAdmin,
+  adminController.updateProduct
+);
+
+// Delete a product
+router.delete(
+  "/product/delete",
+  mw.verifyToken,
+  mw.verifyAdmin,
+  adminController.deleteProduct
+);
 router.get(
   "/orders",
   mw.verifyToken,
