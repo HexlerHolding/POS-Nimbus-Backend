@@ -11,6 +11,8 @@ const Manager = require("../Models/Manager")
 const multer = require("multer");
 const admin = require("firebase-admin");
 const { getProducts } = require("./cashierController");
+const { parse } = require("csv-parse");
+
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -305,7 +307,134 @@ const managerController = {
       res.status(500).json({ message: error.message });
     }
   },
+  bulkUploadProducts: async (req, res) => {
+    try {
+      const shopId = req.shopId;
+      if (!shopId) {
+        return res.status(400).json({ message: "Please provide shop ID" });
+      }
 
+      if (!req.file) {
+        return res.status(400).json({ message: "Please upload a CSV file" });
+      }
+
+      const results = [];
+      const errors = [];
+      let processedCount = 0;
+      let successCount = 0;
+
+      // Parse CSV from buffer
+      const parser = parse({
+        columns: true,
+        skip_empty_lines: true,
+        trim: true,
+      });
+
+      // Process CSV data
+      const records = await new Promise((resolve, reject) => {
+        const records = [];
+        parser
+          .on("data", (record) => records.push(record))
+          .on("end", () => resolve(records))
+          .on("error", (error) => reject(error));
+
+        parser.write(req.file.buffer.toString());
+        parser.end();
+      });
+
+      // Process each product
+      for (const record of records) {
+        processedCount++;
+        
+        try {
+          const { name, description, price, category_name } = record;
+
+          // Validate required fields
+          if (!name || !description || !price || !category_name) {
+            errors.push({
+              row: processedCount,
+              message: "Missing required fields",
+              data: record,
+            });
+            continue;
+          }
+
+          // Validate price format
+          const parsedPrice = parseFloat(price);
+          if (isNaN(parsedPrice) || parsedPrice < 0) {
+            errors.push({
+              row: processedCount,
+              message: "Invalid price format",
+              data: record,
+            });
+            continue;
+          }
+
+          // Check if product already exists
+          const prodExists = await Product.findOne({
+            shop_id: shopId,
+            name,
+          });
+          if (prodExists) {
+            errors.push({
+              row: processedCount,
+              message: "Product already exists",
+              data: record,
+            });
+            continue;
+          }
+
+          // Find category
+          const category = await Category.findOne({
+            shop_id: shopId,
+            category_name,
+            status: true,
+          });
+          if (!category) {
+            errors.push({
+              row: processedCount,
+              message: "Category not found",
+              data: record,
+            });
+            continue;
+          }
+
+          // Create new product
+          const product = new Product({
+            shop_id: shopId,
+            name,
+            description,
+            price: parsedPrice,
+            category: category._id,
+            status: true,
+          });
+
+          await product.save();
+          successCount++;
+          results.push({ row: processedCount, message: "Product added successfully" });
+        } catch (error) {
+          errors.push({
+            row: processedCount,
+            message: error.message,
+            data: record,
+          });
+        }
+      }
+
+      // Return results
+      res.status(200).json({
+        message: "Bulk upload completed",
+        totalProcessed: processedCount,
+        successful: successCount,
+        errors: errors.length,
+        results,
+        errorDetails: errors,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ message: error.message });
+    }
+  },
   getCategories: async (req, res) => {
     try {
       const shopId = req.shopId;

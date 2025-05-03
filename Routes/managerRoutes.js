@@ -2,6 +2,10 @@ const express = require("express");
 const router = express.Router();
 const mw = require("../Middlewares/auth");
 const managerController = require("../Controllers/managerController");
+const multer = require("multer");
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 router.get("/", mw.verifyToken, mw.verifyManager, managerController.getBranch);
 router.get(
@@ -74,6 +78,15 @@ router.delete(
   managerController.deleteProduct
 );
 
+// New bulk product upload route
+router.post(
+  "/products/bulk-upload",
+  mw.verifyToken,
+  mw.verifyManager,
+  upload.single("csvFile"),
+  managerController.bulkUploadProducts
+);
+
 // Category management routes for managers
 router.post(
   "/category/add",
@@ -134,4 +147,5 @@ router.put(
   mw.verifyManager,
   managerController.updateManagerProfile
 );
+
 module.exports = router;

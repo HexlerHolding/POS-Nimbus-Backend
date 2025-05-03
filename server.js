@@ -4,6 +4,8 @@ const express = require("express");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const admin = require("firebase-admin");
+//add csv parser
+
 
 dotenv.config();
 
@@ -78,12 +80,18 @@ const adminRoutes = require("./Routes/adminRoutes");
 const managerRoutes = require("./Routes/managerRoutes");
 const cashierRoutes = require("./Routes/cashierRoutes");
 const kitchenRoutes = require("./Routes/kitchenRoutes");
-
+const serviceRoutes = require("./Routes/serviceRoute");
+//add health check endpoint
+app.get("/health", (req, res) => {
+  res.send("OK");
+});
+app.use("/api/service", serviceRoutes);
 app.use("/auth", authRoutes);
 app.use("/admin", adminRoutes);
 app.use("/manager", managerRoutes);
 app.use("/cashier", cashierRoutes);
 app.use("/kitchen", kitchenRoutes);
+
 
 const PORT = process.env.PORT || 3001;
 
