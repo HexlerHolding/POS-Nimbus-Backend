@@ -1,7 +1,7 @@
 // routes/serviceRoutes.js in your POS system
 const express = require("express");
 const router = express.Router();
-const serviceAuth = require("../middlewares/serviceAuth");
+const serviceAuth = require("../Middlewares/serviceAuth");
 const adminController = require("../Controllers/adminController");
 const cashierController = require("../Controllers/cashierController");
 const Branch = require("../Models/Branch");
