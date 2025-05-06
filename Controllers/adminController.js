@@ -114,7 +114,7 @@ const adminController = {
       }
   
       // Option 1: Soft delete by setting status to false
-      product.status = false;
+      product.status = true;
       await product.save();
       
       // Option 2: Hard delete (uncomment if you prefer hard delete)
