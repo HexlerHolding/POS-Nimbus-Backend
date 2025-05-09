@@ -79,97 +79,119 @@ const cashierController = {
     }
   },
 
-  addOrder: async (req, res) => {
-    try {
-      const { shopId, branchId } = req;
-      if (!shopId || !branchId) {
-        return res.status(400).send({ message: "Please provide ids" });
-      }
-
-      const {
-        products,
-        total,
-        grand_total,
-        customer_name,
-        payment_method,
-        order_type,
-        tax,
-        discount,
-        address,
-      } = req.body;
-
-      console.log(req.body);
-
-      if (
-        !products ||
-        !total ||
-        !grand_total ||
-        !customer_name ||
-        !payment_method ||
-        !order_type ||
-        tax == "null" ||
-        discount == "null" ||
-        !address
-      ) {
-        console.log(
-          !products,
-          !total,
-          !grand_total,
-          !customer_name,
-          !payment_method,
-          !order_type,
-          tax == "null",
-          discount == "null",
-          !address
-        );
-        return res
-          .status(400)
-          .send({ message: "Please provide all required fields" });
-      }
-
-      const cart = products.map((product) => {
-        return {
-          product_id: product._id,
-          product_name: product.name,
-          quantity: product.quantity,
-          price: product.price,
-        };
-      });
-
-      console.log(cart);
-
-      const order = new Order({
-        cart,
-        total,
-        grand_total,
-        customer_name,
-        payment_method,
-        order_type,
-        tax,
-        discount,
-        address,
-        shop_id: shopId,
-        branch_id: branchId,
-      });
-
-      const branch = await Branch.findById(branchId);
-      if (!branch) {
-        return res.status(404).send({ message: "Branch not found" });
-      }
-      
-
-      // add grand total to branch sales
-      branch.sales.push({ date: new Date(), amount: grand_total });
-      console.log(branch.sales);
-      await order.save();
-      await branch.save();
-
-      res.status(200).send({ message: "Order placed successfully", order });
-    } catch (error) {
-      console.log(error);
-      res.status(500).json({ message: error.message });
+  // Updated addOrder function for cashierController
+addOrder: async (req, res) => {
+  try {
+    const { shopId, branchId } = req;
+    if (!shopId || !branchId) {
+      return res.status(400).send({ message: "Please provide ids" });
     }
-  },
+
+    const {
+      // Original required fields
+      products,
+      total,
+      grand_total,
+      customer_name,
+      payment_method,
+      order_type,
+      tax,
+      discount,
+      address,
+      
+      // New optional fields from ordering system
+      customer_phone,
+      delivery_charges,
+      comment,
+      source_system,
+      ordering_system_id,
+      gst,
+    } = req.body;
+    
+    console.log(req.body);
+    
+    // Validate required fields
+    if (
+      !products ||
+      !total ||
+      !grand_total ||
+      !customer_name ||
+      !payment_method ||
+      !order_type ||
+      tax == "null" ||
+      discount == "null" ||
+      !address
+    ) {
+      console.log(
+        !products,
+        !total,
+        !grand_total,
+        !customer_name,
+        !payment_method,
+        !order_type,
+        tax == "null",
+        discount == "null",
+        !address
+      );
+      return res
+        .status(400)
+        .send({ message: "Please provide all required fields" });
+    }
+    
+    // Process the cart items
+    const cart = products.map((product) => {
+      return {
+        product_id: product._id,
+        product_name: product.name,
+        quantity: product.quantity,
+        price: product.price,
+      };
+    });
+    
+    console.log(cart);
+    
+    // Create the order object with all fields
+    const order = new Order({
+      // Original fields
+      cart,
+      total,
+      grand_total,
+      customer_name,
+      payment_method,
+      order_type,
+      tax,
+      discount,
+      address,
+      shop_id: shopId,
+      branch_id: branchId,
+      
+      // New optional fields - only add if they exist
+      ...(customer_phone && { customer_phone }),
+      ...(delivery_charges !== undefined && { delivery_charges }),
+      ...(comment && { comment }),
+      ...(source_system && { source_system }),
+      ...(ordering_system_id && { ordering_system_id }),
+      ...(gst !== undefined && { gst }),
+    });
+    
+    const branch = await Branch.findById(branchId);
+    if (!branch) {
+      return res.status(404).send({ message: "Branch not found" });
+    }
+    
+    // Add grand total to branch sales
+    branch.sales.push({ date: new Date(), amount: grand_total });
+    console.log(branch.sales);
+    
+    await order.save();
+    await branch.save();
+    
+    res.status(200).send({ message: "Order placed successfully", order });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+},
 
   completeOrder: async (req, res) => {
     try {

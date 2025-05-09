@@ -83,6 +83,35 @@ const OrderSchema = new Schema({
     type: Schema.Types.ObjectId,
     required: true,
   },
+  // New fields from ordering system
+  customer_phone: {
+    type: String,
+    required: false,
+  },
+  delivery_charges: {
+    type: Number,
+    default: 0,
+  },
+  comment: {
+    type: String,
+    required: false,
+  },
+  source_system: {
+    type: String,
+    enum: ["pos", "ordering-system", "website", "mobile-app"],
+    default: "pos",
+  },
+  ordering_system_id: {
+    type: Schema.Types.ObjectId,
+    required: false,
+  },
+  // GST from ordering system (if different from tax)
+  gst: {
+    type: Number,
+    required: false,
+  },
+  // Branch name (in addition to branch_id)
+
 });
 
 const Order = mongoose.model("Order", OrderSchema);

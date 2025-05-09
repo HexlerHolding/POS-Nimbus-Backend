@@ -54,7 +54,7 @@ router.get(
       }
       
       // Return tax rates
-      res.status(200).json({ 
+      return res.status(200).json({ 
         cash_tax: branch.cash_tax || 0, 
         card_tax: branch.card_tax || 0 
       });
