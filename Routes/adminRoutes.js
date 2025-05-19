@@ -156,6 +156,5 @@ router.put(
   adminController.updateAdminProfile
 );
 
-// managerRoutes.js - Add this route
 
 module.exports = router;

@@ -8,7 +8,7 @@ const OrderSchema = new Schema({
         type: Schema.Types.ObjectId,
         required: true,
       },
-      product_name: {
+      product_name: {  
         type: String,
         required: true,
       },
@@ -33,6 +33,14 @@ const OrderSchema = new Schema({
   customer_name: {
     type: String,
     required: true,
+  },
+  customer_phone: {
+    type: String,
+    required: false,
+  },
+  customer_address: {
+    type: String,
+    required: false,
   },
   payment_method: {
     type: String,
@@ -84,10 +92,6 @@ const OrderSchema = new Schema({
     required: true,
   },
   // New fields from ordering system
-  customer_phone: {
-    type: String,
-    required: false,
-  },
   delivery_charges: {
     type: Number,
     default: 0,
@@ -111,7 +115,6 @@ const OrderSchema = new Schema({
     required: false,
   },
   // Branch name (in addition to branch_id)
-
 });
 
 const Order = mongoose.model("Order", OrderSchema);

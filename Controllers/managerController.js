@@ -218,73 +218,84 @@ const managerController = {
     }
   },
 
-  addProduct: [
-    upload.single("image"),
-    async (req, res) => {
-      try {
-        const shopId = req.shopId;
-        if (!shopId) {
-          return res.status(400).json({ message: "Please provide shop name" });
-        }
-
-        console.log("body", req.body);
-        console.log("file", req.file);
-
-        const { name, description, price, category } = req.body;
-        const image = req.file;
-
-        if (!name || !description || !price || !category) {
-          return res.status(400).json({ message: "Please fill in all fields" });
-        }
-
-        if (!image) {
-          return res.status(400).json({ message: "Please upload an image" });
-        }
-
-        const bucket = admin.storage().bucket();
-        const uuid = uuidv4();
-        const file = bucket.file(`products/${uuid}`);
-
-        await file.save(image.buffer, {
-          metadata: {
-            contentType: image.mimetype,
-            firebaseStorageDownloadTokens: uuid,
-          },
-        });
-
-        const prodExists = await Product.findOne({
-          shop_id: shopId,
-          name,
-        });
-        if (prodExists) {
-          return res.status(400).json({ message: "Product already exists" });
-        }
-
-        const cat = await Category.findOne({
-          shop_id: shopId,
-          category_name: category,
-        });
-        if (!cat) {
-          return res.status(404).json({ message: "Category not found" });
-        }
-
-        const product = new Product({
-          shop_id: shopId,
-          name,
-          description,
-          image: `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/products%2F${uuid}?alt=media&token=${uuid}`,
-          price,
-          category: cat._id,
-        });
-        await product.save();
-
-        res.status(201).json({ message: "Product created successfully" });
-      } catch (error) {
-        console.log(error);
-        res.status(500).json({ message: error.message });
+addProduct: [
+  upload.single("image"),
+  async (req, res) => {
+    try {
+      const shopId = req.shopId;
+      if (!shopId) {
+        return res.status(400).json({ message: "Please provide shop name" });
       }
-    },
-  ],
+
+      console.log("body", req.body);
+      console.log("file", req.file);
+
+      const { name, description, price, category, variations } = req.body;
+      const image = req.file;
+
+      if (!name || !description || !price || !category) {
+        return res.status(400).json({ message: "Please fill in all fields" });
+      }
+
+      if (!image) {
+        return res.status(400).json({ message: "Please upload an image" });
+      }
+
+      const bucket = admin.storage().bucket();
+      const uuid = uuidv4();
+      const file = bucket.file(`products/${uuid}`);
+
+      await file.save(image.buffer, {
+        metadata: {
+          contentType: image.mimetype,
+          firebaseStorageDownloadTokens: uuid,
+        },
+      });
+
+      const prodExists = await Product.findOne({
+        shop_id: shopId,
+        name,
+      });
+      if (prodExists) {
+        return res.status(400).json({ message: "Product already exists" });
+      }
+
+      const cat = await Category.findOne({
+        shop_id: shopId,
+        category_name: category,
+      });
+      if (!cat) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+
+      // Parse variations if they exist
+      let parsedVariations = [];
+      if (variations && typeof variations === 'string') {
+        try {
+          parsedVariations = JSON.parse(variations);
+        } catch (error) {
+          return res.status(400).json({ message: "Invalid variations format" });
+        }
+      }
+
+      const product = new Product({
+        shop_id: shopId,
+        name,
+        description,
+        image: `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/products%2F${uuid}?alt=media&token=${uuid}`,
+        price,
+        category: cat._id,
+        variations: parsedVariations
+      });
+      await product.save();
+
+      res.status(201).json({ message: "Product created successfully" });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ message: error.message });
+    }
+  },
+],
 
   getProducts: async (req, res) => {
     try {

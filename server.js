@@ -83,6 +83,7 @@ const kitchenRoutes = require("./Routes/kitchenRoutes");
 const serviceRoutes = require("./Routes/serviceRoute");
 //add health check endpoint
 app.get("/health", (req, res) => {
+  console.log("Health check received at", new Date().toISOString());
   res.send("OK");
 });
 app.use("/api/service", serviceRoutes);
