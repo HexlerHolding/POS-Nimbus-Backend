@@ -31,6 +31,7 @@ readyOrder: async (req, res) => {
     }
 
     const order = await Order.findById(orderId);
+    console.log( "order is " , order);
     if (!order) {
       return res.status(404).send({ message: "Order not found" });
     }
@@ -41,6 +42,7 @@ readyOrder: async (req, res) => {
     // Prepare email content
     const customerName = order.customer_name || "Valued Customer"; // Fallback if name is not available
     const orderNumber = order._id.toString(); // Use order ID as order number
+    const customerEmail = order.customer_email || "";
     const orderDetails = {
       orderType: order.orderType || "delivery", // Adjust based on your order schema
       estimatedTime: order.estimatedTime || "30-45 minutes" // Adjust based on your order schema or logic
@@ -62,10 +64,11 @@ readyOrder: async (req, res) => {
       emailSubject = `Your Order #${orderNumber} is Ready!`;
       emailHtml = createOrderReadyEmail(customerName, orderNumber, orderDetails);
     }
-
+    //log email id
+    console.log("Customer Email:", customerEmail);
     // Send email notification
     const emailResult = await sendEmail(
-      order.customer_email,
+      customerEmail,
       emailSubject,
       emailHtml
     );
