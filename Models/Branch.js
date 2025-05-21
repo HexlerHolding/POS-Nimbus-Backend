@@ -35,6 +35,14 @@ const BranchSchema = new Schema({
     type: String,
     required: true,
   },
+  latitude: {
+    type: Number,
+    required: true, // Set to true if you want to enforce providing a value
+  },
+  longitude: {
+    type: Number,
+    required: true, // Set to true if you want to enforce providing a value
+  },
   total_tables: {
     type: Number,
   },

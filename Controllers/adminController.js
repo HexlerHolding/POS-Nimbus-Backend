@@ -269,57 +269,59 @@ const adminController = {
     }
   },
 
-  updateBranch: async (req, res) => {
-    try {
-      const shopId = req.shopId;
-      if (!shopId) {
-        return res.status(400).send({ message: "Please provide shop name" });
-      }
-
-      const {
-        branchName,
-        newName,
-        address,
-        city,
-        contact,
-        totalTables,
-        openingTime,
-        closingTime,
-        shiftStatus,
-      } = req.body;
-
-      if (!branchName) {
-        return res
-          .status(400)
-          .send({ message: "Please fill in all required fields" });
-      }
-
-      const branch = await Branch.findOne({
-        shop_id: shopId,
-        branch_name: branchName,
-      });
-
-      if (!branch) {
-        return res.status(404).send({ message: "Branch not found" });
-      }
-
-      branch.branch_name = newName || branchName;
-      branch.address = address || branch.address;
-      branch.city = city || branch.city;
-      branch.contact = contact || branch.contact;
-      branch.total_tables = totalTables || branch.total_tables;
-      branch.opening_time = openingTime || branch.opening_time;
-      branch.closing_time = closingTime || branch.closing_time;
-      branch.shift_status = shiftStatus || branch.shift_status;
-
-      await branch.save();
-
-      res.status(200).send({ message: "Branch updated successfully" });
-    } catch (error) {
-      console;
-      res.status(500).send({ message: error.message });
+updateBranch: async (req, res) => {
+  try {
+    const shopId = req.body.shopId;
+    if (!shopId) {
+      return res.status(400).send({ message: "Please provide shop name" });
     }
-  },
+
+    const {
+      branchName,
+      newName,
+      address,
+      city,
+      contact,
+      totalTables,
+      openingTime,
+      closingTime,
+      shiftStatus,
+      latitude,
+      longitude,
+    } = req.body;
+
+    if (!branchName) {
+      return res.status(400).send({ message: "Please fill in all required fields" });
+    }
+
+    const branch = await Branch.findOne({
+      shop_id: shopId,
+      branch_name: branchName,
+    });
+
+    if (!branch) {
+      return res.status(404).send({ message: "Branch not found" });
+    }
+
+    branch.branch_name = newName || branchName;
+    branch.address = address || branch.address;
+    branch.city = city || branch.city;
+    branch.contact = contact || branch.contact;
+    branch.total_tables = totalTables || branch.total_tables;
+    branch.opening_time = openingTime || branch.opening_time;
+    branch.closing_time = closingTime || branch.closing_time;
+    branch.shift_status = shiftStatus || branch.shift_status;
+    branch.latitude = latitude !== undefined ? latitude : branch.latitude;
+    branch.longitude = longitude !== undefined ? longitude : branch.longitude;
+
+    await branch.save();
+
+    res.status(200).send({ message: "Branch updated successfully" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({ message: error.message });
+  }
+},
 
   deleteBranch: async (req, res) => {
     try {

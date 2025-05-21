@@ -77,7 +77,7 @@ const authController = {
     }
   },
 
-  adminLogin: async (req, res) => {
+ adminLogin: async (req, res) => {
     try {
       const { shopName, password } = req.body;
       if (!shopName || !password) {
@@ -105,7 +105,7 @@ const authController = {
           sameSite: "none",
           secure: true,
         })
-        .json({ role: role, shopName: shopName });
+        .json({ role: role, shopName, token });
     } catch (error) {
       console.log(error);
       res.status(500).json({ message: error.message });
