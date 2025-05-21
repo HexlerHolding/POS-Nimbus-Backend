@@ -1,7 +1,5 @@
-// utils/emailNotifier.js - Modified with Gmail-specific fixes
 const nodemailer = require("nodemailer");
 
-// Create a more detailed transporter configuration specifically for Gmail
 const transporter = nodemailer.createTransport({
   service: 'gmail', // Use the service shorthand instead of host/port
   auth: {
