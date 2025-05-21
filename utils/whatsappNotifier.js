@@ -1,4 +1,4 @@
-// utils/whatsappNotifier.js
+// utils/whatsappNotifier.js - Modified file
 const axios = require('axios');
 require('dotenv').config();
 
@@ -112,9 +112,11 @@ module.exports = {
   
   // Template names for different notification types
   templates: {
-    orderPlaced: 'hello_world',
-    orderReady: 'hello_world',
-    orderCancelled: 'hello_world'
+    // Using the same template for all messages for now, but you can replace with actual template names
+    // when registering different templates in WhatsApp Business API
+    orderPlaced: 'hello_world',     // Replace with your order confirmation template name
+    orderReady: 'hello_world',      // Replace with your order ready template name
+    orderCancelled: 'hello_world'   // Replace with your cancellation template name
   },
   
   // Helper functions for creating parameters
