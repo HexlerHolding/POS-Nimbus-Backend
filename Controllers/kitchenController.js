@@ -22,6 +22,7 @@ const kitchenController = {
   },
 
 
+
 readyOrder: async (req, res) => {
   try {
     const orderId = req.params.id;
@@ -45,19 +46,33 @@ readyOrder: async (req, res) => {
       estimatedTime: order.estimatedTime || "30-45 minutes" // Adjust based on your order schema or logic
     };
 
-    const emailHtml = createOrderReadyEmail(customerName, orderNumber, orderDetails);
+    // Check if the order address is in branch (modify this condition based on your schema/logic)
+    const isInBranch = !order.address || order.address === "Branch Address"; // Example condition
+
+    let emailSubject, emailHtml;
+    if (isInBranch) {
+      // Customize email for in-branch orders
+      emailSubject = `Your Order #${orderNumber} is Ready In Branch!`;
+      emailHtml = createOrderReadyEmail(customerName, orderNumber, {
+        ...orderDetails,
+        orderType: "pickup" // Override to pickup for in-branch orders
+      });
+    } else {
+      // Standard email for non-branch (delivery) orders
+      emailSubject = `Your Order #${orderNumber} is Ready!`;
+      emailHtml = createOrderReadyEmail(customerName, orderNumber, orderDetails);
+    }
 
     // Send email notification
     const emailResult = await sendEmail(
       order.customer_email,
-      `Your Order #${orderNumber} is Ready!`,
+      emailSubject,
       emailHtml
     );
 
     if (!emailResult.success) {
       console.error("Failed to send email notification:", emailResult.error);
-      // You can choose to handle this differently, e.g., log to a monitoring system
-      // but still return success for the API response since the order status was updated
+      // Log to a monitoring system but don't fail the API response
     }
 
     res.status(200).send({ message: "Order is ready" });
