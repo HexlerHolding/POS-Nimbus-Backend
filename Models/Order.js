@@ -42,6 +42,10 @@ const OrderSchema = new Schema({
     type: String,
     required: false,
   },
+   customer_email: {
+      type: String,
+      trim: true,
+    },
   payment_method: {
     type: String,
     required: true,

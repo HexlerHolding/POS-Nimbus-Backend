@@ -4,6 +4,7 @@ const Branch = require("../Models/Branch");
 const Cashier = require("../Models/Cashier");
 const Shop = require("../Models/Shop");
 const whatsappNotifier = require('../utils/whatsappNotifier');
+const emailNotifier = require('../utils/emailNotifier'); // Import the email notifier
 
 const cashierController = {
   getProducts: async (req, res) => {
@@ -80,7 +81,7 @@ const cashierController = {
     }
   },
 
-  // Updated addOrder function for cashier controller
+  // Updated addOrder function for cashier controller with email notification
   addOrder: async (req, res) => {
     try {
       const { shopId, branchId } = req;
@@ -102,6 +103,7 @@ const cashierController = {
         
         // New optional fields from ordering system
         customer_phone,
+        customer_email, // Added customer email field
         delivery_charges,
         comment,
         source_system,
@@ -168,6 +170,7 @@ const cashierController = {
         
         // New optional fields - only add if they exist
         ...(customer_phone && { customer_phone }),
+        ...(customer_email && { customer_email }), // Add customer email
         ...(delivery_charges !== undefined && { delivery_charges }),
         ...(comment && { comment }),
         ...(source_system && { source_system }),
@@ -187,16 +190,11 @@ const cashierController = {
       await order.save();
       await branch.save();
       
-      // Log the customer phone information for debugging
-      console.log("Order details for notification:");
-      console.log("- Order type:", order_type);
-      console.log("- Customer phone:", customer_phone);
-      console.log("- Address:", address);
-      
       // Generate a unique order number
       const orderNumber = order._id.toString().slice(-6).toUpperCase();
       
       // Send WhatsApp notification if a phone number is provided
+      let whatsappSent = false;
       if (customer_phone && customer_phone.trim() !== '') {
         try {
           console.log("Attempting to send WhatsApp notification to:", customer_phone);
@@ -218,6 +216,7 @@ const cashierController = {
           
           if (notificationResult.success) {
             console.log("WhatsApp notification sent successfully to:", customer_phone);
+            whatsappSent = true;
           } else {
             console.log("WhatsApp notification failed:", notificationResult.error);
           }
@@ -229,10 +228,51 @@ const cashierController = {
         console.log("No phone number provided or empty phone number, skipping WhatsApp notification");
       }
       
+      // Send email notification
+      let emailSent = false;
+      const emailTarget = customer_email || process.env.ADMIN_EMAIL;
+      
+      if (emailTarget) {
+        try {
+          console.log("Attempting to send email notification to:", emailTarget);
+          
+          // Create email content
+          const emailContent = emailNotifier.createOrderPlacedEmail(
+            customer_name,
+            orderNumber,
+            {
+              orderType: order_type,
+              total: grand_total,
+              cart
+            }
+          );
+          
+          // Send the email notification
+          const emailResult = await emailNotifier.sendEmail(
+            emailTarget,
+            `Order Confirmation #${orderNumber} - Habib Catering`,
+            emailContent
+          );
+          
+          if (emailResult.success) {
+            console.log("Email notification sent successfully to:", emailTarget);
+            emailSent = true;
+          } else {
+            console.log("Email notification failed:", emailResult.error);
+          }
+        } catch (emailError) {
+          console.error('Failed to send email notification:', emailError);
+          // Continue with the order process even if email fails
+        }
+      }
+      
       res.status(200).send({ 
         message: "Order placed successfully", 
         order,
-        notification_sent: customer_phone && customer_phone.trim() !== '' 
+        notification: {
+          whatsapp_sent: whatsappSent,
+          email_sent: emailSent
+        }
       });
     } catch (error) {
       console.log("Error in addOrder:", error);
@@ -340,6 +380,7 @@ const cashierController = {
     }
   },
 
+  // Updated markOrderReady function with email notification
   markOrderReady: async (req, res) => {
     try {
       const orderId = req.params.id;
@@ -355,33 +396,73 @@ const cashierController = {
       order.status = "ready";
       await order.save();
 
-      // Send WhatsApp notification if it's a delivery order and phone number is provided
-      if (order.order_type === 'delivery' && order.customer_phone && order.address !== 'In Branch') {
-        try {
-          console.log("Sending order ready notification to:", order.customer_phone);
-          
-          // Generate estimated delivery time (30 minutes from now)
-          const now = new Date();
-          now.setMinutes(now.getMinutes() + 30);
-          const estimatedTime = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
-          
-          // Create parameters for the delivery notification template
-          const parameters = whatsappNotifier.createDeliveryParameters(
-            order.customer_name,
-            estimatedTime
-          );
-          
-          // Send the WhatsApp notification
-          const notificationResult = await whatsappNotifier.sendWhatsAppMessage(
-            order.customer_phone,
-            parameters,
-            whatsappNotifier.templates.orderReady  // Use the order ready template
-          );
-          
-          console.log("WhatsApp ready for delivery notification result:", notificationResult);
-        } catch (notificationError) {
-          console.error('Failed to send WhatsApp notification:', notificationError);
-          // Continue with the order process even if notification fails
+      // Generate a unique order number
+      const orderNumber = order._id.toString().slice(-6).toUpperCase();
+      
+      // Generate estimated delivery time (30 minutes from now)
+      const now = new Date();
+      now.setMinutes(now.getMinutes() + 30);
+      const estimatedTime = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+      
+      // Only send notifications if it's a delivery order and not "In Branch"
+      if (order.order_type === 'delivery' && order.address !== 'In Branch') {
+        // Send WhatsApp notification if phone number is provided
+        if (order.customer_phone && order.customer_phone.trim() !== '') {
+          try {
+            console.log("Sending order ready notification to:", order.customer_phone);
+            
+            // Create parameters for the delivery notification template
+            const parameters = whatsappNotifier.createDeliveryParameters(
+              order.customer_name,
+              estimatedTime
+            );
+            
+            // Send the WhatsApp notification
+            const notificationResult = await whatsappNotifier.sendWhatsAppMessage(
+              order.customer_phone,
+              parameters,
+              whatsappNotifier.templates.orderReady  // Use the order ready template
+            );
+            
+            console.log("WhatsApp ready for delivery notification result:", notificationResult);
+          } catch (notificationError) {
+            console.error('Failed to send WhatsApp notification:', notificationError);
+            // Continue with the order process even if notification fails
+          }
+        }
+        
+        // Send email notification if email is provided
+        const emailTarget = order.customer_email || process.env.ADMIN_EMAIL;
+        if (emailTarget) {
+          try {
+            console.log("Sending order ready email notification to:", emailTarget);
+            
+            // Create email content
+            const emailContent = emailNotifier.createOrderReadyEmail(
+              order.customer_name,
+              orderNumber,
+              {
+                orderType: order.order_type,
+                estimatedTime
+              }
+            );
+            
+            // Send the email notification
+            const emailResult = await emailNotifier.sendEmail(
+              emailTarget,
+              `Your Order is Ready #${orderNumber} - Habib Catering`,
+              emailContent
+            );
+            
+            if (emailResult.success) {
+              console.log("Email notification sent successfully to:", emailTarget);
+            } else {
+              console.log("Email notification failed:", emailResult.error);
+            }
+          } catch (emailError) {
+            console.error('Failed to send email notification:', emailError);
+            // Continue with the order process even if email fails
+          }
         }
       }
 
