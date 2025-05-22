@@ -31,7 +31,7 @@ const adminController = {
       if (!shopId) {
         return res.status(400).json({ message: "Please provide shop ID" });
       }
-  
+      
       const { 
         productId, 
         name, 
@@ -113,12 +113,8 @@ const adminController = {
         return res.status(404).json({ message: "Product not found" });
       }
   
-      // Option 1: Soft delete by setting status to false
       product.status = true;
       await product.save();
-      
-      // Option 2: Hard delete (uncomment if you prefer hard delete)
-      // await Product.deleteOne({ _id: productId });
   
       res.status(200).json({ message: "Product deleted successfully" });
     } catch (error) {
