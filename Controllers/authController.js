@@ -1,361 +1,309 @@
-const express = require("express");
-require("dotenv").config();
-const jwt = require("jsonwebtoken");
-// const Admin = require("../Models/Admin");
-const Shop = require("../Models/Shop");
-const Branch = require("../Models/Branch");
-const Manager = require("../Models/Manager");
-const Cashier = require("../Models/Cashier");
-const Kitchen = require("../Models/Kitchen");
-const authController = {
-  /*
-  signup: async (req, res) => {
-    try {
-      const { username, password } = req.body;
-      if (!username || !password) {
-        return res.status(400).json({ message: "Please fill in all fields" });
-      }
-      const admin = new Admin({ username, email, password });
-      await admin.save();
+// Updated AuthService.js
+import axios from "axios";
+const BASE_URL = process.env.REACT_APP_BACKEND_URL;
 
-      res.status(201).json({ message: "Admin created successfully" });
-    } catch (error) {
-      console.log(error);
-      res.status(500).json({ message: error.message });
-    }
-  },
-
-  login: async (req, res) => {
-    try {
-      const { username, password } = req.body;
-      if (!username || !password) {
-        return res.status(400).json({ message: "Please fill in all fields" });
-      }
-      const admin = await Admin.findOne({ username });
-      if (!admin) {
-        return res.status(400).json({ message: "Invalid credentials" });
-      }
-      const isMatch = await admin.comparePassword(password);
-      if (!isMatch) {
-        return res.status(400).json({ message: "Invalid credentials" });
-      }
-      role = "superadmin";
-      const token = jwt.sign(
-        { id: admin._id, role: role },
-        process.env.JWT_SECRET
-      );
-  
-      res
-        .status(200)
-        .cookie("token", token, {
-          httpOnly: true,
-          sameSite: "none",
-          secure: true,
-        })
-        .json({ role: role });
-    } catch (error) {
-      console.log(error);
-      res.status(500).json({ message: error.message });
-    }
-  },
-  */
-
-  addShop: async (req, res) => {
-    try {
-      const { shopName, email, password } = req.body;
-      if (!shopName || !email || !password) {
-        return res.status(400).json({ message: "Please fill in all fields" });
-      }
-      const shop = new Shop({ shop_name: shopName, email, password });
-
-      await shop.save();
-
-      res.status(201).json({ message: "Shop created successfully" });
-    } catch (error) {
-      console.log(error);
-      res.status(500).json({ message: error.message });
-    }
-  },
-
-adminLogin: async (req, res) => {
-  try {
-    const { shopName, password } = req.body;
-    if (!shopName || !password) {
-      return res.status(400).json({ message: "Please fill in all fields" });
-    }
-    const shop = await Shop.findOne({ shop_name: shopName });
-    if (!shop) {
-      return res.status(400).json({ message: "Invalid name" });
-    }
-    const isMatch = await shop.comparePassword(password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials" });
-    }
-    const role = "admin";
-    const token = jwt.sign(
-      { id: shop._id, role: role, shopId: shop._id, shopName: shopName },
-      process.env.JWT_SECRET,
-      { expiresIn: "12h" }
-    );
-
-    res
-      .status(200)
-      .cookie("token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production', // true in production
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        maxAge: 12 * 60 * 60 * 1000, // 12 hours
-        domain: process.env.NODE_ENV === 'production' ? '.onrender.com' : undefined
-      })
-      .json({ 
-        role: role, 
-        shopName, 
-        token,
-        shopId: shop._id,
-        userId: shop._id
-      });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: error.message });
+// Create axios instance
+const axiosInstance = axios.create({
+  baseURL: BASE_URL,
+  headers: {
+    'Content-Type': 'application/json'
   }
-},
+});
 
-  managerLogin: async (req, res) => {
+// Add request interceptor to include token in headers
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor to handle token expiration
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token expired or invalid
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userId');
+      localStorage.removeItem('shopId');
+      localStorage.removeItem('branchId');
+      localStorage.removeItem('shopName');
+      localStorage.removeItem('branchName');
+      // Redirect to login
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
+const handleResponse = async (response) => {
+  if (response.status >= 200 && response.status < 300) {
+    return { data: response.data };
+  } else {
+    return { error: response.data.message };
+  }
+};
+
+const AuthService = {
+  adminLogin: async (shopName, password) => {
     try {
-      const { shopName, branchName, username, password } = req.body;
-      console.log(shopName, branchName, username, password);
-      //log all of above with mesage
-      console.log("shopName", shopName);
-      console.log("branchName", branchName);
-      console.log("username", username);
-      console.log("password", password);
-      if (!username ) {
-        console.log("Please fill in all fields1");
+      const response = await axios.post(
+        `${BASE_URL}/auth/admin/login`,
+        {
+          shopName,
+          password,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+
+      console.log(response);
+      
+      if (response.status >= 200 && response.status < 300) {
+        const { shopId, userId, token } = response.data;
         
-        return res.status(400).json({ message: "Please fill in all fields" });
+        // Store token in localStorage
+        if (token) {
+          localStorage.setItem('authToken', token);
+        }
+        
+        // Store user data
+        localStorage.setItem('userId', userId || shopId);
+        localStorage.setItem('shopId', shopId || response.data._id);
+        localStorage.setItem('shopName', shopName);
+        
+        // Set default authorization header for future requests
+        if (token) {
+          axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        }
+        
+        return { 
+          data: {
+            ...response.data,
+            shopId: shopId || response.data._id,
+            userId: userId || shopId
+          } 
+        };
       }
+      return handleResponse(response);
+    } catch (error) {
+      console.error('Admin login error:', error);
+      return { error: error.response?.data?.message || "Login failed" };
+    }
+  },
 
-      const shop = await Shop.findOne({ shop_name: shopName });
-      if (!shop) {
-        return res.status(404).json({ message: "Shop not found" });
-      }
-
-      const branch = await Branch.findOne({
-        shop_id: shop._id,
-        branch_name: branchName,
-      });
-      if (!branch) {
-        return res.status(404).json({ message: "Branch not found" });
-      }
-
-      const manager = await Manager.findOne({
-        shop_id: shop._id,
-        branch_id: branch._id,
-        username,
-      });
-      if (!manager) {
-        console.log("Please fill in all fields2");
-
-        return res.status(400).json({ message: "Invalid credentials" });
-      }
-      const isMatch = await manager.comparePassword(password);
-      if (!isMatch) {
-        console.log("Please fill in all fields3");
-
-        return res.status(400).json({ message: "Invalid credentials" });
-      }
-
-      const role = "manager";
-      const token = jwt.sign(
+  managerLogin: async (name, password, shopName, branch) => {
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/auth/manager/login`,
         {
-          id: manager._id,
-          role: role,
-          shopId: shop._id,
+          username: name,
+          password,
           shopName,
-          branchId: branch._id,
-          branchName,
+          branchName: branch,
         },
-        process.env.JWT_SECRET,
-        { expiresIn: "12h" }
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
       );
 
-      res
-        .status(200)
-        .cookie("token", token, {
-          httpOnly: true,
-          sameSite: "none",
-          secure: true,
-        })
-        .json({ role: role, shopName, branchName });
-
-      console.log("Manager login successful");
+      if (response.status >= 200 && response.status < 300) {
+        const { shopId, branchId, userId, token } = response.data;
+        
+        // Store token and data
+        if (token) {
+          localStorage.setItem('authToken', token);
+          axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        }
+        
+        localStorage.setItem('userId', userId || response.data._id);
+        localStorage.setItem('shopId', shopId);
+        localStorage.setItem('branchId', branchId);
+        localStorage.setItem('shopName', shopName);
+        localStorage.setItem('branchName', branch);
+        
+        return { 
+          data: {
+            ...response.data,
+            shopId: shopId,
+            branchId: branchId,
+            userId: userId || response.data._id
+          } 
+        };
+      }
+      return handleResponse(response);
     } catch (error) {
-      console.log(error);
-      res.status(500).json({ message: error.message });
+      console.error('Manager login error:', error);
+      return { error: error.response?.data?.message || "Login failed" };
     }
   },
 
-  cashierLogin: async (req, res) => {
+  cashierLogin: async (name, password, shopName, branch) => {
     try {
-      const { shopName, branchName, username, password } = req.body;
-      // console.log(shopName, branchName, username, password);
-
-      if (!username || !password || !shopName || !branchName) {
-        return res.status(400).json({ message: "Please fill in all fields" });
-      }
-
-      const shop = await Shop.findOne({ shop_name: shopName });
-      if (!shop) {
-        return res.status(404).json({ message: "Shop not found" });
-      }
-
-      const branch = await Branch.findOne({
-        shop_id: shop._id,
-        branch_name: branchName,
-      });
-      if (!branch) {
-        return res.status(404).json({ message: "Branch not found" });
-      }
-
-      const cashier = await Cashier.findOne({
-        shop_id: shop._id,
-        branch_id: branch._id,
-        username,
-      });
-      if (!cashier) {
-        return res.status(400).json({ message: "Invalid credentials" });
-      }
-      const isMatch = await cashier.comparePassword(password);
-      if (!isMatch) {
-        return res.status(400).json({ message: "Invalid credentials" });
-      }
-
-      const role = "cashier";
-      const token = jwt.sign(
+      const response = await axios.post(
+        `${BASE_URL}/auth/cashier/login`,
         {
-          id: cashier._id,
-          role: role,
-          shopId: shop._id,
+          username: name,
+          password,
           shopName,
-          branchId: branch._id,
-          branchName,
+          branchName: branch,
         },
-        process.env.JWT_SECRET,
-        { expiresIn: "12h" }
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
       );
 
-      res
-        .status(200)
-        .cookie("token", token, {
-          httpOnly: true,
-          sameSite: "none",
-          secure: true,
-        })
-        .json({ role: role, shopName, branchName });
+      if (response.status >= 200 && response.status < 300) {
+        const { token } = response.data;
+        
+        if (token) {
+          localStorage.setItem('authToken', token);
+          axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        }
+      }
+
+      return handleResponse(response);
     } catch (error) {
-      console.log(error);
-      res.status(500).json({ message: error.message });
+      console.error('Cashier login error:', error);
+      return { error: error.response?.data?.message || "Login failed" };
     }
   },
 
-  kitchenLogin: async (req, res) => {
+  kitchenLogin: async (name, password, shopName, branch) => {
     try {
-      const { shopName, branchName, username, password } = req.body;
-      if (!username || !password || !shopName || !branchName) {
-        return res.status(400).json({ message: "Please fill in all fields" });
-      }
-
-      const shop = await Shop.findOne({ shop_name: shopName });
-      if (!shop) {
-        return res.status(404).json({ message: "Shop not found" });
-      }
-
-      const branch = await Branch.findOne({
-        shop_id: shop._id,
-        branch_name: branchName,
-      });
-      if (!branch) {
-        return res.status(404).json({ message: "Branch not found" });
-      }
-
-      const kitchen = await Kitchen.findOne({
-        shop_id: shop._id,
-        branch_id: branch._id,
-        username,
-      });
-      if (!kitchen) {
-        return res.status(400).json({ message: "Invalid credentials" });
-      }
-      const isMatch = await kitchen.comparePassword(password);
-      if (!isMatch) {
-        return res.status(400).json({ message: "Invalid credentials" });
-      }
-
-      const role = "kitchen";
-      const token = jwt.sign(
+      const response = await axios.post(
+        `${BASE_URL}/auth/kitchen/login`,
         {
-          id: kitchen._id,
-          role: role,
-          shopId: shop._id,
+          username: name,
+          password,
           shopName,
-          branchId: branch._id,
-          branchName,
+          branchName: branch,
         },
-        process.env.JWT_SECRET,
-        { expiresIn: "12h" }
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
       );
 
-      res
-        .status(200)
-        .cookie("token", token, {
-          httpOnly: true,
-          sameSite: "none",
-          secure: true,
-        })
-        .json({ role: role, shopName, branchName });
+      if (response.status >= 200 && response.status < 300) {
+        const { shopId, branchId, userId, token } = response.data;
+        
+        if (token) {
+          localStorage.setItem('authToken', token);
+          axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        }
+        
+        return { 
+          data: {
+            ...response.data,
+            shopId: shopId,
+            branchId: branchId,
+            userId: userId || response.data._id
+          } 
+        };
+      }
+      return handleResponse(response);
     } catch (error) {
-      console.log(error);
-      res.status(500).json({ message: error.message });
+      console.error('Kitchen login error:', error);
+      return { error: error.response?.data?.message || "Login failed" };
     }
   },
 
-  logout: async (req, res) => {
-    res
-      .status(200)
-      .clearCookie("token")
-      .json({ message: "Logged out successfully" });
-  },
-
-  getShops: async (req, res) => {
+  logout: async () => {
     try {
-      const shops = await Shop.find();
-      res.status(200).send(shops);
+      // Clear local storage
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userId');
+      localStorage.removeItem('shopId');
+      localStorage.removeItem('branchId');
+      localStorage.removeItem('shopName');
+      localStorage.removeItem('branchName');
+      
+      // Clear axios default header
+      delete axiosInstance.defaults.headers.common['Authorization'];
+
+      // Still call server logout to clear server-side session/cookie
+      const response = await axios.post(
+        `${BASE_URL}/auth/logout`,
+        {},
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+
+      return handleResponse(response);
     } catch (error) {
-      console.log(error);
-      res.status(500).send({ message: error.message });
+      console.error('Logout error:', error);
+      return { error: error.response?.data?.message || "Logout failed" };
     }
   },
 
-  getBranchesForShop: async (req, res) => {
+  getShopNames: async () => {
     try {
-      const { shopName } = req.params;
+      const response = await axios.get(`${BASE_URL}/auth/shops`, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        withCredentials: true,
+      });
 
-      if (!shopName) {
-        return res.status(400).send({ message: "Please provide shop name" });
-      }
-
-      const shop = await Shop.findOne({ shop_name: shopName });
-      if (!shop) {
-        return res.status(404).send({ message: "Shop not found" });
-      }
-
-      const branches = await Branch.find({ shop_id: shop._id });
-      res.status(200).send(branches);
+      return response.data;
     } catch (error) {
-      console.log(error);
-      res.status(500).send({ message: error.message });
+      return { error: error.message };
+    }
+  },
+
+  getBranches: async (shopName) => {
+    try {
+      const response = await axios.get(
+        `${BASE_URL}/auth/branches/${shopName}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          withCredentials: true,
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      return { error: error.message };
     }
   },
 };
 
-module.exports = authController;
+// Initialize token on app load
+const initializeAuth = () => {
+  const token = localStorage.getItem('authToken');
+  if (token) {
+    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  }
+};
+
+// Call this when your app starts
+initializeAuth();
+
+export default AuthService;
+export { axiosInstance };
