@@ -77,40 +77,48 @@ const authController = {
     }
   },
 
- adminLogin: async (req, res) => {
-    try {
-      const { shopName, password } = req.body;
-      if (!shopName || !password) {
-        return res.status(400).json({ message: "Please fill in all fields" });
-      }
-      const shop = await Shop.findOne({ shop_name: shopName });
-      if (!shop) {
-        return res.status(400).json({ message: "Invalid name" });
-      }
-      const isMatch = await shop.comparePassword(password);
-      if (!isMatch) {
-        return res.status(400).json({ message: "Invalid credentials" });
-      }
-      const role = "admin";
-      const token = jwt.sign(
-        { id: shop._id, role: role, shopId: shop._id, shopName: shopName },
-        process.env.JWT_SECRET,
-        { expiresIn: "12h" }
-      );
-
-      res
-        .status(200)
-        .cookie("token", token, {
-          httpOnly: true,
-          sameSite: "none",
-          secure: true,
-        })
-        .json({ role: role, shopName, token });
-    } catch (error) {
-      console.log(error);
-      res.status(500).json({ message: error.message });
+adminLogin: async (req, res) => {
+  try {
+    const { shopName, password } = req.body;
+    if (!shopName || !password) {
+      return res.status(400).json({ message: "Please fill in all fields" });
     }
-  },
+    const shop = await Shop.findOne({ shop_name: shopName });
+    if (!shop) {
+      return res.status(400).json({ message: "Invalid name" });
+    }
+    const isMatch = await shop.comparePassword(password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+    const role = "admin";
+    const token = jwt.sign(
+      { id: shop._id, role: role, shopId: shop._id, shopName: shopName },
+      process.env.JWT_SECRET,
+      { expiresIn: "12h" }
+    );
+
+    res
+      .status(200)
+      .cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production', // true in production
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: 12 * 60 * 60 * 1000, // 12 hours
+        domain: process.env.NODE_ENV === 'production' ? '.onrender.com' : undefined
+      })
+      .json({ 
+        role: role, 
+        shopName, 
+        token,
+        shopId: shop._id,
+        userId: shop._id
+      });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+},
 
   managerLogin: async (req, res) => {
     try {
