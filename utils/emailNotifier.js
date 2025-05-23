@@ -125,7 +125,10 @@ const sendEmail = async (to, subject, html) => {
  */
 const createOrderPlacedEmail = (customerName, orderNumber, orderDetails) => {
   const { orderType, total, cart } = orderDetails;
-  
+
+  // Ensure total is a valid number
+  const formattedTotal = typeof total === 'number' ? total.toFixed(2) : '0.00';
+
   // Generate cart items HTML
   const cartItemsHtml = cart
     .map(
@@ -189,7 +192,7 @@ const createOrderPlacedEmail = (customerName, orderNumber, orderDetails) => {
               <tfoot>
                 <tr>
                   <td colspan="3" style="padding: 12px 8px; text-align: right; border-top: 2px solid #eee;"><strong>Grand Total:</strong></td>
-                  <td style="padding: 12px 8px; text-align: right; border-top: 2px solid #eee;"><strong>$${total.toFixed(2)}</strong></td>
+                  <td style="padding: 12px 8px; text-align: right; border-top: 2px solid #eee;"><strong>$${formattedTotal}</strong></td>
                 </tr>
               </tfoot>
             </table>

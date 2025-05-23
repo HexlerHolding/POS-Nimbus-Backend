@@ -88,7 +88,7 @@ const cashierController = {
       if (!shopId || !branchId) {
         return res.status(400).send({ message: "Please provide ids" });
       }
-
+      console.log("Shop ID:", shopId);
       const {
         // Original required fields
         products,
@@ -195,34 +195,20 @@ const cashierController = {
       
       // Send WhatsApp notification if a phone number is provided
       let whatsappSent = false;
+      console.log("Customer Phone:", customer_phone);
       if (customer_phone && customer_phone.trim() !== '') {
         try {
-          console.log("Attempting to send WhatsApp notification to:", customer_phone);
-          
-          // Create parameters for the order placed template
-          const parameters = whatsappNotifier.createOrderParameters(
-            customer_name,
-            orderNumber
-          );
-          
-          // Send the WhatsApp notification using the order placed template
-          const notificationResult = await whatsappNotifier.sendWhatsAppMessage(
-            customer_phone,
-            parameters,
-            whatsappNotifier.templates.orderPlaced  // Use the order placed template
-          );
-          
-          console.log("WhatsApp notification result:", notificationResult);
-          
+          console.log(`Attempting to send WhatsApp notification to: ${customer_phone}`);
+          const message = `Hello ${customer_name}, your order #${orderNumber} has been placed successfully!`;
+          const notificationResult = await whatsappNotifier.sendWhatsAppMessage(customer_phone, message);
           if (notificationResult.success) {
-            console.log("WhatsApp notification sent successfully to:", customer_phone);
-            whatsappSent = true;
+            console.log(`WhatsApp notification sent successfully to: ${customer_phone}`);
           } else {
-            console.log("WhatsApp notification failed:", notificationResult.error);
+            console.log(`Failed to send WhatsApp notification to: ${customer_phone}`);
           }
+          whatsappSent = notificationResult.success;
         } catch (notificationError) {
-          console.error('Failed to send WhatsApp notification:', notificationError);
-          // Continue with the order process even if notification fails
+          console.error(`Error sending WhatsApp notification to ${customer_phone}:`, notificationError);
         }
       } else {
         console.log("No phone number provided or empty phone number, skipping WhatsApp notification");
@@ -351,25 +337,16 @@ const cashierController = {
       // Send WhatsApp notification if it's a delivery order and phone number is provided
       if (order.order_type === 'delivery' && order.customer_phone && order.address !== 'In Branch') {
         try {
-          console.log("Sending order cancellation notification to:", order.customer_phone);
-          
-          // Create parameters for the cancellation notification template
-          const parameters = whatsappNotifier.createCancellationParameters(
-            order.customer_name,
-            "unforeseen circumstances" // Default reason for cancellation
-          );
-          
-          // Send the WhatsApp notification
-          const notificationResult = await whatsappNotifier.sendWhatsAppMessage(
-            order.customer_phone,
-            parameters,
-            whatsappNotifier.templates.orderCancelled  // Use the order cancelled template
-          );
-          
-          console.log("WhatsApp cancellation notification result:", notificationResult);
+          console.log(`Attempting to send order cancellation notification to: ${order.customer_phone}`);
+          const message = `Hello ${order.customer_name}, we regret to inform you that your order #${order._id.toString().slice(-6).toUpperCase()} has been cancelled due to unforeseen circumstances.`;
+          const notificationResult = await whatsappNotifier.sendWhatsAppMessage(order.customer_phone, message);
+          if (notificationResult.success) {
+            console.log(`Order cancellation notification sent successfully to: ${order.customer_phone}`);
+          } else {
+            console.log(`Failed to send order cancellation notification to: ${order.customer_phone}`);
+          }
         } catch (notificationError) {
-          console.error('Failed to send WhatsApp notification:', notificationError);
-          // Continue with the order process even if notification fails
+          console.error(`Error sending order cancellation notification to ${order.customer_phone}:`, notificationError);
         }
       }
 
@@ -409,24 +386,16 @@ const cashierController = {
         // Send WhatsApp notification if phone number is provided
         if (order.customer_phone && order.customer_phone.trim() !== '') {
           try {
-            console.log("Sending order ready notification to:", order.customer_phone);
-            
-            // Create parameters for the delivery notification template
-            const parameters = whatsappNotifier.createDeliveryParameters(
-              order.customer_name,
-              estimatedTime
-            );
-            
-            // Send the WhatsApp notification
-            const notificationResult = await whatsappNotifier.sendWhatsAppMessage(
-              order.customer_phone,
-              parameters,
-              whatsappNotifier.templates.orderReady  // Use the order ready template
-            );
-            
-            console.log("WhatsApp ready for delivery notification result:", notificationResult);
+            console.log(`Attempting to send order ready notification to: ${order.customer_phone}`);
+            const message = `Hello ${order.customer_name}, your order #${orderNumber} is ready for delivery. Estimated delivery time: ${estimatedTime}.`;
+            const notificationResult = await whatsappNotifier.sendWhatsAppMessage(order.customer_phone, message);
+            if (notificationResult.success) {
+              console.log(`Order ready notification sent successfully to: ${order.customer_phone}`);
+            } else {
+              console.log(`Failed to send order ready notification to: ${order.customer_phone}`);
+            }
           } catch (notificationError) {
-            console.error('Failed to send WhatsApp notification:', notificationError);
+            console.error(`Error sending order ready notification to ${order.customer_phone}:`, notificationError);
             // Continue with the order process even if notification fails
           }
         }
